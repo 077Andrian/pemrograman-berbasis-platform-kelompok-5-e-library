@@ -60,9 +60,9 @@ Lihat [panduan mobile](frontend/mobile/README.md). Jika platform Android belum t
 
 ## Pengujian dan APK
 
-Di folder backend, jalankan npm test. GitHub Actions menjalankan automated API tests, pemeriksaan sintaks web, Flutter analyze/widget tests, serta membangun APK debug. Artefak APK tersedia di halaman [CI yang menghasilkan build Android](https://github.com/077Andrian/pemrograman-berbasis-platform-kelompok-5-e-library/actions/runs/40191686584) selama 14 hari sejak 25 Oktober 2026.
+Di folder backend, jalankan npm test. GitHub Actions terakhir yang diverifikasi berhasil untuk API backend, pemeriksaan sintaks JavaScript web, analisis/widget test Flutter, dan build APK debug Android. [Buka hasil CI terbaru](https://github.com/077Andrian/pemrograman-berbasis-platform-kelompok-5-e-library/actions/runs/40192043036) untuk melihat job dan mengunduh artefak APK debug.
 
-Sebelum penyerahan final, jalankan aplikasi pada browser dan Android Emulator/perangkat untuk smoke test manual. Proyek belum dideploy ke server publik dan belum dipromosikan sebagai layanan produksi.
+Ikuti [checklist smoke test manual](docs/manual-smoke-test.md) sebelum presentasi/penyerahan. Pengujian browser dan Android Emulator/perangkat masih harus dilakukan oleh tim pada lingkungan lokal. Proyek belum dideploy ke server publik dan belum dipromosikan sebagai layanan produksi.
 
 ## Catatan keamanan
 
