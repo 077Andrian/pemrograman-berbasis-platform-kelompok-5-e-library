@@ -157,11 +157,6 @@ class _LoginPageState extends State<LoginPage> {
       final user = data['user'] is Map<String, dynamic>
           ? data['user'] as Map<String, dynamic>
           : <String, dynamic>{};
-      final displayName = user['name']?.toString().isNotEmpty == true
-          ? user['name'].toString()
-          : (_emailController.text.trim());
-      final role = user['role']?.toString() ?? 'belum dikirim server';
-
       if (!mounted) return;
       setState(() {
         _accessTokenInMemory = token;
