@@ -31,7 +31,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Buat akun E-Library'), findsOneWidget);
-    expect(find.text('Nama lengkap'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(3));
     expect(find.text('Daftar'), findsOneWidget);
     expect(find.text('Sudah punya akun? Masuk'), findsOneWidget);
   });
