@@ -1,6 +1,6 @@
 # Frontend Mobile — E-Library
 
-Prototipe mobile menggunakan Flutter dan endpoint autentikasi yang sama dengan frontend web.
+Prototipe mobile menggunakan Flutter dan endpoint autentikasi yang sama dengan frontend web. Pengguna dapat membuat akun Member, login, melihat katalog dan mengelola pinjaman.
 
 ## Menyiapkan platform Android
 
