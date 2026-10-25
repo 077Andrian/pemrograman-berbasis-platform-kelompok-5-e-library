@@ -40,7 +40,7 @@
 ## C. Flutter Android
 
 1. Masuk ke frontend/mobile.
-2. Jika belum ada folder platform Android, jalankan flutter create --platforms=android --project-name elibrary_mobile . .
+2. Jika belum ada folder platform Android, jalankan flutter create --platforms=android --project-name elibrary_mobile .
 3. Jalankan flutter pub get.
 4. Jalankan aplikasi pada Android Emulator dengan:
 
