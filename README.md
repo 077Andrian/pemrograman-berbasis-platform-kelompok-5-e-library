@@ -32,12 +32,10 @@ Lengkapi tabel ini bersama anggota kelompok. Jangan menebak nama, NIM, atau pera
 └── README.md
 ```
 
-## Dokumen Tugas Kelompok
-1. **Tugas Kelompok 1 — Design System:** `docs/tugas-kelompok-1-design-system.md`
-2. **Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi:** `docs/tugas-kelompok-2-auth.md`
-3. **Tugas Kelompok 3 — Prototipe Login dan Guard:** `docs/tugas-kelompok-3-prototype-auth.md`
-
-Kerjakan dan review secara berurutan sesuai modul. Jangan lanjut ke tugas berikutnya sebelum tugas sebelumnya selesai dan di-merge.
+## Urutan Tugas Kelompok
+1. **Tugas Kelompok 1 — Design System:** draft awal ada di `docs/tugas-kelompok-1-design-system.md`. Selesaikan diskusi, bukti visual, review, dan merge terlebih dahulu.
+2. **Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi:** dokumentasi dibuat setelah Tugas Kelompok 1 selesai dan di-merge.
+3. **Tugas Kelompok 3 — Prototipe Login dan Guard:** dokumentasi dibuat setelah Tugas Kelompok 2 selesai dan di-merge.
 
 ## Menjalankan Proyek
 Petunjuk menjalankan backend, web, dan aplikasi mobile akan dilengkapi setelah stack teknologi dan konfigurasi API disepakati kelompok. Lihat README di masing-masing folder.
