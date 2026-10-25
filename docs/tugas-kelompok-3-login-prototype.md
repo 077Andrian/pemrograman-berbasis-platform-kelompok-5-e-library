@@ -2,7 +2,7 @@
 
 **Proyek:** E-Library — Kelompok 5  
 **Versi:** 1.0  
-**Status:** UI dan klien API prototipe telah dibuat. Pengujian login sukses end-to-end masih menunggu backend API.
+**Status:** UI login web dan Flutter serta backend API tersedia di repository; build Flutter dan uji manual end-to-end masih perlu diverifikasi.
 
 ## 1. Tujuan
 
@@ -107,9 +107,9 @@ Bentuk respons sukses di atas merupakan kontrak yang harus disepakati/diimplemen
 - [x] Validasi input dasar, loading, pesan error, dan state sukses ditambahkan.
 - [x] Kedua klien memakai POST /api/auth/login dan mengharapkan accessToken serta data pengguna.
 - [ ] Build Flutter telah dijalankan pada emulator/perangkat — belum diverifikasi dari environment repository.
-- [ ] Login sukses dan login gagal telah diuji terhadap backend nyata — backend belum tersedia.
+- [ ] Login sukses dan login gagal telah diuji secara manual di browser/emulator — belum diverifikasi.
 - [ ] CORS web, token, role, dan akses endpoint terlindungi telah diuji end-to-end — belum dilakukan.
 
 ## 7. Kesimpulan
 
-Prototipe frontend untuk web dan mobile sudah menjadi baseline implementasi dan mengacu pada endpoint autentikasi yang sama. Tugas ini belum membuktikan integrasi berjalan sampai backend menyediakan endpoint login dan tes di web serta emulator berhasil dijalankan.
+Prototipe frontend untuk web dan mobile sudah menjadi baseline implementasi dan mengacu pada endpoint autentikasi yang sama. Tugas ini belum membuktikan integrasi berjalan setelah automated test API berjalan sukses dan tes manual browser/emulator berhasil dijalankan.
