@@ -18,7 +18,7 @@ Jalankan backend pada komputer host, kemudian:
 
     flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
 
-10.0.2.2 adalah alamat untuk mengakses server komputer host dari Android Emulator. Untuk perangkat fisik, ganti dengan alamat IP LAN komputer dan pastikan firewall mengizinkan koneksi. HTTPS digunakan untuk deployment produksi.
+10.0.2.2 adalah alamat untuk mengakses server komputer host dari Android Emulator. Untuk perangkat fisik, ganti dengan alamat IP LAN komputer dan pastikan firewall mengizinkan koneksi. Jika Android menolak HTTP saat debug lokal, pada android/app/src/debug/AndroidManifest.xml tambahkan atribut android:usesCleartextTraffic="true" pada elemen application; jangan aktifkan izin ini pada manifest utama atau build produksi. HTTPS wajib digunakan saat deployment produksi.
 
 Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi lalu menampilkan katalog. Member bisa mencari, meminjam, dan mengembalikan bukunya. Admin dapat mengelola buku dan status pengembalian. Token hanya disimpan di memori aplikasi; keluar akan menghapus token dari state lokal.
 
