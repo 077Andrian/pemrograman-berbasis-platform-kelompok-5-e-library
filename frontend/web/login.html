@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Masuk — E-Library</title>
+  <link rel="stylesheet" href="login.css">
+  <script src="config.js" defer></script>
+  <script src="login.js" defer></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="brand-panel" aria-label="Tentang E-Library">
+      <a class="brand" href="design-system-preview.html" aria-label="E-Library beranda">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span>E-Library</span>
+      </a>
+      <div class="brand-copy">
+        <p class="eyebrow">PERPUSTAKAAN DIGITAL</p>
+        <h1>Pengetahuan selalu dekat.</h1>
+        <p>Temukan bacaan, kelola peminjaman, dan lanjutkan perjalanan belajarmu.</p>
+      </div>
+      <p class="brand-foot">Satu ruang untuk banyak cerita.</p>
+    </section>
+
+    <section class="form-panel">
+      <div class="form-wrap">
+        <p class="mobile-eyebrow">E-LIBRARY · KELOMPOK 5</p>
+        <h2>Selamat datang kembali</h2>
+        <p class="intro">Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.</p>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="username"
+                   placeholder="nama@contoh.com" required>
+            <small class="field-error" id="email-error"></small>
+          </div>
+
+          <div class="field">
+            <label for="password">Kata sandi</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password"
+                     placeholder="Masukkan kata sandi" required>
+              <button class="show-password" id="toggle-password" type="button"
+                      aria-label="Tampilkan kata sandi" aria-pressed="false">Lihat</button>
+            </div>
+            <small class="field-error" id="password-error"></small>
+          </div>
+
+          <div id="form-message" class="message" role="status" aria-live="polite" hidden></div>
+          <button id="submit-button" class="primary-button" type="submit">
+            <span id="button-label">Masuk</span>
+          </button>
+        </form>
+
+        <p class="support-note">Prototipe login · membutuhkan backend API yang aktif.</p>
+        <div class="success-panel" id="success-panel" hidden>
+          <strong>Login berhasil.</strong>
+          <p id="success-detail"></p>
+          <p class="small-note">Access token hanya disimpan sementara di memori halaman ini.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
