@@ -1,11 +1,13 @@
 # Tugas Kelompok 1 — Design System E-Library
 
-**Status:** Draft usulan. Bahas melalui GitHub Issue dan tandai sebagai final setelah disetujui kelompok.
+**Versi:** 1.0
+**Status:** Rancangan dasar dan contoh komponen sudah disiapkan. Screenshot dari implementasi web yang dijalankan masih perlu ditambahkan sebagai bukti akhir modul.
 
 ## 1. Tujuan
-Menyepakati token visual dan pola komponen bersama agar halaman publik dan admin terlihat konsisten.
+Menyepakati token visual dan pola komponen bersama agar halaman publik dan admin E-Library terlihat konsisten.
 
-## 2. Usulan token visual
+## 2. Token visual versi 1
+Token berikut dipakai sebagai baseline awal implementasi. Jika tim menemukan kebutuhan teknis atau aksesibilitas yang lebih baik, revisi dapat dilakukan melalui Pull Request.
 
 ### Warna utama
 | Token | Hex | Penggunaan |
@@ -14,12 +16,12 @@ Menyepakati token visual dan pola komponen bersama agar halaman publik dan admin
 | Accent | `#14B8A6` | Aksen, indikator terpilih, elemen pendukung |
 | Surface | `#F8FAFC` | Latar halaman dan area konten |
 
-Warna status seperti error adalah warna semantik untuk memberi informasi validasi, bukan warna merek utama. Contoh error menggunakan `#DC2626`; pastikan kontrasnya memadai saat implementasi.
+Warna error adalah warna status semantik, bukan warna merek utama. Untuk validasi input digunakan `#DC2626` dengan pesan kesalahan yang jelas.
 
 ### Tipografi
 - **Font judul:** Inter, bobot 600–700.
 - **Font isi:** Inter, bobot 400–500.
-- Jika Inter belum tersedia pada lingkungan target, gunakan fallback sans-serif yang sesuai.
+- **Fallback:** sans-serif sistem jika Inter tidak tersedia.
 
 ### Radius sudut
 - Kecil: `4px`
@@ -33,25 +35,21 @@ Gunakan kelipatan 4 px: `4, 8, 12, 16, 24, 32, 48 px`.
 - Elevasi rendah untuk kartu: `0 1px 3px rgba(15, 23, 42, 0.10)`
 - Elevasi menengah untuk dropdown/modal: `0 8px 24px rgba(15, 23, 42, 0.12)`
 
-Semua token di bagian ini masih usulan sampai disetujui anggota kelompok.
-
 ## 3. Pendekatan komponen
-**Usulan:** gunakan komponen siap pakai yang konsisten untuk Button, Card, dan Input. Gunakan utility/style helpers untuk layout dan spacing yang sederhana.
+**Keputusan baseline:** gunakan komponen yang dapat dipakai ulang untuk Button, Card, dan Input. Gunakan utility/style helpers untuk layout, grid, flex, dan spacing sederhana.
 
-Alasan: komponen interaktif lebih mudah diuji, memiliki state yang konsisten, dan dapat digunakan ulang pada banyak halaman. Utility tetap berguna untuk tata letak sederhana tanpa menduplikasi perilaku komponen.
+Alasannya, komponen interaktif memiliki tampilan dan state yang konsisten, lebih mudah diuji, serta bisa digunakan kembali. Utility tetap digunakan untuk tata letak supaya tidak membuat komponen baru untuk setiap variasi jarak.
 
-Keputusan final dan framework web harus disepakati oleh kelompok terlebih dahulu.
-
-## 4. Contoh komponen
-Contoh berikut adalah ilustrasi HTML/CSS netral. Adaptasikan implementasi ke framework web yang disepakati.
+## 4. Contoh komponen dan kode
+Contoh ini adalah HTML/CSS netral dan dapat diadaptasi ke framework web yang disepakati.
 
 ### Button
 **Normal state**
 ```html
-<button class='button button-primary'>Masuk</button>
+<button class="button button-primary">Masuk</button>
 ```
 
-**Contoh style**
+**Style dan state interaktif**
 ```css
 .button {
   border: 0;
@@ -60,34 +58,27 @@ Contoh berikut adalah ilustrasi HTML/CSS netral. Adaptasikan implementasi ke fra
   font: 600 1rem/1.4 Inter, sans-serif;
   cursor: pointer;
 }
-.button-primary {
-  color: #fff;
-  background: #1E3A5F;
-}
-.button-primary:hover {
-  filter: brightness(1.12);
-}
+.button-primary { color: #fff; background: #1E3A5F; }
+.button-primary:hover { filter: brightness(1.12); }
 .button-primary:focus-visible {
   outline: 3px solid #14B8A6;
   outline-offset: 2px;
 }
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.button:disabled { opacity: .5; cursor: not-allowed; }
 ```
-**State yang perlu ditampilkan:** normal, hover/focus, dan disabled.
+
+State yang harus diperiksa: normal, hover/focus, dan disabled.
 
 ### Card
 **Normal state**
 ```html
-<article class='book-card'>
-  <h3>Judul Buku</h3>
-  <p>Nama penulis</p>
+<article class="book-card">
+  <h3>Belajar Teknologi</h3>
+  <p>Andi Pratama</p>
 </article>
 ```
 
-**Contoh style**
+**Style**
 ```css
 .book-card {
   padding: 24px;
@@ -96,69 +87,74 @@ Contoh berikut adalah ilustrasi HTML/CSS netral. Adaptasikan implementasi ke fra
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
 }
 ```
-**State yang perlu ditampilkan:** normal dan hover/focus jika kartu dapat dipilih atau diklik.
+
+Gunakan hover/focus bila kartu dapat dipilih atau diklik.
 
 ### Input
 **Normal state**
 ```html
-<label for='email'>Email</label>
-<input id='email' type='email' placeholder='nama@contoh.com' />
+<label for="email">Email</label>
+<input id="email" type="email" placeholder="nama@contoh.com" />
 ```
 
-**Contoh style**
+**Style dan error state**
 ```css
-input {
+.input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #CBD5E1;
   border-radius: 8px;
   font: 400 1rem Inter, sans-serif;
 }
-input:focus-visible {
-  outline: 3px solid #14B8A6;
-  outline-offset: 1px;
-}
-input[aria-invalid='true'] {
-  border-color: #DC2626;
-}
+.input:focus-visible { outline: 3px solid #14B8A6; }
+.input[aria-invalid="true"] { border-color: #DC2626; }
 ```
 
-**Error state**
 ```html
-<label for='email-error'>Email</label>
-<input id='email-error' type='email' aria-invalid='true' aria-describedby='email-help' />
-<p id='email-help'>Format email belum benar.</p>
+<label for="email-error">Email</label>
+<input id="email-error" class="input" type="email"
+       aria-invalid="true" aria-describedby="email-help" />
+<p id="email-help">Format email belum benar.</p>
 ```
 
 ## 5. Pendekatan halaman publik dan admin
-**Usulan awal:**
-- Gunakan token warna, tipografi, radius, spacing, dan komponen dasar yang sama.
-- Halaman publik berfokus pada pencarian/penjelajahan buku dan informasi E-Library.
-- Halaman admin menggunakan pola komponen dasar yang sama, tetapi navigasi dan akses fiturnya mengikuti role admin.
-- Perbedaan tampilan atau navigasi tidak menggantikan pemeriksaan otorisasi oleh backend.
+- Gunakan palet, tipografi, radius, spacing, dan komponen dasar yang sama.
+- **Halaman publik** berfokus pada penjelajahan katalog, pencarian, kategori, informasi buku, dan alur masuk pengguna.
+- **Halaman admin** berfokus pada pengelolaan buku dan rekap; navigasi dan fitur menyesuaikan role admin.
+- Tampilan navigasi bukan pengganti otorisasi. Izin akses tetap harus diverifikasi oleh backend.
 
-Bahas pendekatan ini melalui GitHub Issue. Catat perubahan keputusan di Issue dan perbarui bagian keputusan akhir pada dokumen ini.
+## 6. Pratinjau visual
+Visual berikut merupakan mockup/referensi statis untuk menunjukkan arah desain; ini bukan tangkapan layar dari aplikasi final.
 
-## 6. Bukti visual
-Screenshot belum dilampirkan pada draft awal. Tambahkan screenshot dari implementasi yang benar-benar dijalankan pada folder `docs/assets/` setelah dibuat.
+![Pratinjau visual Design System E-Library](assets/design-system-preview.svg)
+
+- [Buka pratinjau HTML/CSS di repository](../frontend/web/design-system-preview.html)
+- [Buka file SVG pratinjau](assets/design-system-preview.svg)
+
+### Screenshot dari implementasi
+Untuk memenuhi bukti screenshot pada modul, buka file HTML di browser atau terapkan komponennya pada aplikasi web, lalu simpan screenshot hasil render yang benar-benar terlihat di browser pada folder `docs/assets/`.
 
 - [ ] Screenshot Button: normal dan state interaktif/disabled.
 - [ ] Screenshot Card: normal dan hover/focus jika relevan.
 - [ ] Screenshot Input: normal dan error.
-- [ ] Pastikan semua screenshot memperlihatkan style yang sama dengan token yang telah disepakati.
+- [x] Mockup visual acuan Button, Card, Input, token warna, dan arah halaman publik/admin tersedia.
 
-## 7. Keputusan akhir kelompok
-- Warna final: Menunggu keputusan kelompok.
-- Font final: Menunggu keputusan kelompok.
-- Radius, spacing, shadow final: Menunggu keputusan kelompok.
-- Pendekatan komponen: Menunggu keputusan kelompok.
-- Pendekatan halaman publik/admin: Menunggu keputusan kelompok.
+## 7. Keputusan baseline
+- Warna: Primary `#1E3A5F`, Accent `#14B8A6`, Surface `#F8FAFC`.
+- Font: Inter untuk judul dan isi, dengan fallback sans-serif.
+- Radius: `4px`, `8px`, `12px`.
+- Spacing: skala 4 px, dari `4px` sampai `48px`.
+- Shadow: elevasi rendah `0 1px 3px rgba(15, 23, 42, 0.10)` dan elevasi menengah `0 8px 24px rgba(15, 23, 42, 0.12)`.
+- Pendekatan: komponen reusable untuk Button/Card/Input, utility untuk layout.
+- Halaman publik dan admin: token visual sama, navigasi dan fitur berbeda sesuai kebutuhan dan role.
 
-## 8. Checklist penyelesaian
-- [ ] Token 2–3 warna utama dengan hex disepakati.
-- [ ] Font judul dan isi ditetapkan.
-- [ ] Radius, spacing, dan shadow ditetapkan.
-- [ ] Contoh Button, Card, dan Input berisi kode serta screenshot.
-- [ ] State normal dan state interaktif/error ditunjukkan.
-- [ ] Pendekatan komponen dan halaman publik/admin diputuskan melalui Issue.
-- [ ] Dokumen direview oleh anggota lain dan di-merge sebelum Tugas Kelompok 2 dimulai.
+## 8. Checklist
+- [x] Token 2–3 warna utama dengan kode hex tersedia.
+- [x] Font judul dan isi ditetapkan sebagai baseline.
+- [x] Radius, spacing, dan shadow ditetapkan sebagai baseline.
+- [x] Kode contoh Button, Card, dan Input tersedia.
+- [x] State normal, interaktif, dan error dijelaskan dalam contoh.
+- [x] Pendekatan komponen serta perbedaan halaman publik/admin didokumentasikan.
+- [x] Mockup visual acuan dibuat.
+- [ ] Screenshot dari implementasi yang dijalankan ditambahkan.
+- [ ] Setelah screenshot ada, lakukan pengecekan akhir dan merge hasil penyelesaian Tugas Kelompok 1 sebelum lanjut ke Tugas Kelompok 2.
