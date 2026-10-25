@@ -1,8 +1,8 @@
 # Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi
 
 **Proyek:** E-Library — Kelompok 5  
-**Versi:** 1.0 (baseline rancangan)  
-**Status:** Kontrak autentikasi dan otorisasi didokumentasikan; backend belum diimplementasikan atau diuji melalui API.
+**Versi:** 1.1  
+**Status:** Kontrak autentikasi, endpoint, middleware JWT/role, dan automated test suite telah ditambahkan. Test suite harus dijalankan sebelum dinyatakan terverifikasi.
 
 ## 1. Tujuan
 
@@ -142,8 +142,8 @@ Server sebaiknya tidak membocorkan apakah email tertentu terdaftar pada alur yan
 - [x] Endpoint publik, endpoint login, dan endpoint khusus Admin didokumentasikan.
 - [x] Aturan JWT, kepemilikan data, dan format error dijelaskan.
 - [x] Skenario pengujian minimum disiapkan.
-- [ ] Backend mengimplementasikan dan menjalankan semua aturan di atas — **belum termasuk lingkup dokumen ini**.
-- [ ] Hasil pengujian API dilampirkan setelah implementasi — **belum dilakukan**.
+- [x] Implementasi backend menyediakan endpoint utama sesuai kontrak (Express, SQLite, JWT, serta role middleware).
+- [x] Automated test suite ditambahkan; status hasil run CI menjadi sumber verifikasi terakhir.
 
 ## 9. Langkah berikutnya
 
