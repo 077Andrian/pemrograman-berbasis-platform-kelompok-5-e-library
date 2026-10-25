@@ -221,6 +221,7 @@
   }
   async function loadLoans() {
     const adminMode = currentUser.role === "admin";
+    document.querySelector(".loan-section").hidden = adminMode;
     loanHeading.textContent = adminMode ? "Semua peminjaman" : "Peminjaman saya";
     loanSubtitle.textContent = adminMode ? "Kelola status pinjaman anggota" : "Riwayat dan status peminjaman";
     const result = await api(adminMode ? "/admin/loans" : "/loans/my");
@@ -293,12 +294,15 @@
       if (!response.accessToken) throw new Error("Respons login tidak memuat accessToken.");
       passwordInput.value = "";
       await enterLibrary(response.accessToken);
-      setMessage("", true);
+      message.hidden = true;
     } catch (error) {
       accessTokenInMemory = null;
       currentUser = null;
       form.hidden = false;
+      supportNote.hidden = false;
       libraryPanel.hidden = true;
+      pageTitle.textContent = "Selamat datang kembali";
+      pageIntro.textContent = "Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.";
       if (error instanceof TypeError) {
         setMessage("Tidak dapat terhubung ke API. Pastikan backend aktif, URL API benar, dan CORS dikonfigurasi.");
       } else {
