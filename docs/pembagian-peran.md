@@ -5,9 +5,9 @@ Total anggota: 4 orang.
 | Anggota | Peran | Tanggung jawab |
 |---|---|---|
 | Moh Andrian Maulana — NIM 2024520077 | Dokumentasi | Menyusun dokumentasi, README, laporan, dan bukti pengerjaan di GitHub. |
-| Anggota 2 — nama/NIM dilengkapi kelompok | Frontend Web/Mobile | Mengerjakan antarmuka web dan aplikasi mobile serta integrasi ke API. |
+| Imam Ghozeli — NIM 2024520017 | Frontend Web/Mobile | Mengerjakan antarmuka web dan aplikasi mobile serta integrasi ke API. |
 | Anggota 3 — nama/NIM dilengkapi kelompok | Backend | Mengerjakan API, autentikasi, JWT, role/hak akses, dan database. |
-| Anggota 4 — nama/NIM dilengkapi kelompok | Quality Control (QC) | Menguji UI/API, mencatat bug, memeriksa skenario uji, dan membantu mengumpulkan bukti. |
+| Giovani Sapta Purnama — NIM 2024520043 | Quality Control (QC) | Menguji UI/API, mencatat bug, memeriksa skenario uji, dan membantu mengumpulkan bukti. |
 
 ## Cara kontribusi
 - Setiap anggota mengerjakan bagian sesuai peran utamanya di branch masing-masing.
