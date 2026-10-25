@@ -26,6 +26,7 @@ void main() {
   testWidgets('register mode reveals required name field', (tester) async {
     await tester.pumpWidget(const ELibraryApp());
 
+    await tester.ensureVisible(find.text('Belum punya akun? Daftar'));
     await tester.tap(find.text('Belum punya akun? Daftar'));
     await tester.pumpAndSettle();
 
