@@ -1,20 +1,25 @@
-name: Backend API CI
+name: E-Library CI
 
 on:
   push:
     branches: [main]
     paths:
       - "backend/**"
+      - "frontend/mobile/**"
+      - "frontend/web/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
+      - "frontend/mobile/**"
+      - "frontend/web/**"
       - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
 
 jobs:
-  test:
+  backend-test:
+    name: Backend API tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,9 +28,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install dependencies
+      - name: Install backend dependencies
         working-directory: backend
         run: npm install
-      - name: Run API tests
+      - name: Run backend API tests
         working-directory: backend
         run: npm test
+
+  flutter-test:
+    name: Flutter analysis and widget tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Get Flutter dependencies
+        working-directory: frontend/mobile
+        run: flutter pub get
+      - name: Analyze Flutter source
+        working-directory: frontend/mobile
+        run: flutter analyze --no-pub
+      - name: Run Flutter widget tests
+        working-directory: frontend/mobile
+        run: flutter test --no-pub
+
+  web-syntax:
+    name: Web JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check JavaScript syntax
+        run: |
+          node --check frontend/web/config.js
+          node --check frontend/web/login.js

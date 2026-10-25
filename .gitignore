@@ -27,3 +27,11 @@ pnpm-debug.log*
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+
+
+# Local SQLite databases and sidecar files
+backend/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db

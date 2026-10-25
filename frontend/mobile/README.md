@@ -4,19 +4,28 @@ Prototipe mobile menggunakan Flutter dan endpoint autentikasi yang sama dengan f
 
 ## Menyiapkan platform Android
 
-Folder ini berisi pubspec.yaml dan lib/main.dart. Buat scaffold platform Android bila belum tersedia:
+Folder ini berisi pubspec.yaml, lib/main.dart, dan widget tests. Jika folder Android belum ada, jalankan dari folder ini:
 
     flutter create --platforms=android .
+
+Lalu instal dependency:
+
     flutter pub get
 
 ## Menjalankan Android Emulator
 
-Pastikan backend berjalan pada port yang sesuai di komputer host, lalu jalankan:
+Jalankan backend pada komputer host, kemudian:
 
     flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
 
-Nilai default API URL adalah http://10.0.2.2:3000/api agar emulator Android dapat mencoba terhubung ke server pada komputer host. Untuk perangkat fisik, ganti dengan alamat IP LAN komputer. Pastikan jaringan dan firewall mengizinkan koneksi. Gunakan HTTPS untuk deployment produksi.
+10.0.2.2 adalah alamat untuk mengakses server komputer host dari Android Emulator. Untuk perangkat fisik, ganti dengan alamat IP LAN komputer dan pastikan firewall mengizinkan koneksi. HTTPS digunakan untuk deployment produksi.
 
-Endpoint yang dipanggil adalah POST /api/auth/login. Respons sukses diharapkan berisi accessToken dan objek user. Token hanya dipegang di memori aplikasi pada prototipe ini.
+Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi lalu menampilkan katalog. Member bisa mencari, meminjam, dan mengembalikan bukunya. Admin dapat mengelola buku dan status pengembalian. Token hanya disimpan di memori aplikasi; keluar akan menghapus token dari state lokal.
 
-Lihat [dokumen Tugas Kelompok 3](../../docs/tugas-kelompok-3-login-prototype.md). Build emulator dan pengujian end-to-end belum diverifikasi; backend harus diimplementasikan terlebih dahulu.
+## Test
+
+    flutter pub get
+    flutter analyze
+    flutter test
+
+CI menjalankan analisis dan widget test untuk aplikasi mobile. Build APK dan pengujian manual pada emulator/perangkat tetap harus dilakukan sebelum presentasi final.

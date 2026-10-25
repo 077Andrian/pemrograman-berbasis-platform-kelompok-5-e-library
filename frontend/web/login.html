@@ -27,17 +27,22 @@
     <section class="form-panel">
       <div class="form-wrap">
         <p class="mobile-eyebrow">E-LIBRARY · KELOMPOK 5</p>
-        <h2>Selamat datang kembali</h2>
-        <p class="intro">Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.</p>
+        <h2 id="page-title">Selamat datang kembali</h2>
+        <p class="intro" id="page-intro">Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.</p>
 
         <form id="login-form" novalidate>
+          <div class="field" id="name-field" hidden>
+            <label for="name">Nama lengkap</label>
+            <input id="name" name="name" type="text" autocomplete="name"
+                   placeholder="Nama lengkap" maxlength="80">
+            <small class="field-error" id="name-error"></small>
+          </div>
           <div class="field">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" autocomplete="username"
                    placeholder="nama@contoh.com" required>
             <small class="field-error" id="email-error"></small>
           </div>
-
           <div class="field">
             <label for="password">Kata sandi</label>
             <div class="password-wrap">
@@ -48,19 +53,61 @@
             </div>
             <small class="field-error" id="password-error"></small>
           </div>
-
           <div id="form-message" class="message" role="status" aria-live="polite" hidden></div>
           <button id="submit-button" class="primary-button" type="submit">
             <span id="button-label">Masuk</span>
           </button>
         </form>
+        <button type="button" class="auth-mode-toggle" id="auth-mode-toggle">Belum punya akun? Daftar</button>
 
-        <p class="support-note">Prototipe login · membutuhkan backend API yang aktif.</p>
-        <div class="success-panel" id="success-panel" hidden>
-          <strong>Login berhasil.</strong>
-          <p id="success-detail"></p>
-          <p class="small-note">Access token hanya disimpan sementara di memori halaman ini.</p>
-        </div>
+        <p class="support-note" id="support-note">Prototipe login · membutuhkan backend API yang aktif.</p>
+
+        <section class="library-panel" id="library-panel" aria-label="Area perpustakaan terlindungi" hidden>
+          <div class="library-topbar">
+            <div>
+              <p class="eyebrow library-eyebrow">AREA PENGGUNA</p>
+              <p class="welcome-line" id="current-user"></p>
+              <p class="role-line" id="current-role"></p>
+            </div>
+            <button type="button" class="secondary-button" id="logout-button">Keluar</button>
+          </div>
+
+          <form id="search-form" class="search-form">
+            <label class="sr-only" for="book-search">Cari buku</label>
+            <input id="book-search" type="search" placeholder="Cari judul, penulis, atau ISBN">
+            <label class="sr-only" for="category-filter">Pilih kategori</label>
+            <select id="category-filter"><option value="">Semua kategori</option></select>
+            <button class="primary-button search-button" type="submit">Cari</button>
+          </form>
+
+          <div class="section-heading">
+            <div><h3>Katalog buku</h3><p id="catalog-count">Memuat katalog...</p></div>
+          </div>
+          <div id="catalog-message" class="message" role="status" aria-live="polite" hidden></div>
+          <div id="book-grid" class="book-grid"></div>
+
+          <section class="loan-section">
+            <div class="section-heading">
+              <div><h3 id="loan-heading">Peminjaman saya</h3><p id="loan-subtitle">Riwayat dan status peminjaman</p></div>
+              <button type="button" id="refresh-button" class="secondary-button">Muat ulang</button>
+            </div>
+            <div id="loan-list" class="loan-list"></div>
+          </section>
+
+          <section id="admin-panel" class="admin-panel" hidden>
+            <div class="section-heading"><div><h3>Kelola katalog</h3><p>Hanya akun Admin yang dapat mengubah data buku.</p></div></div>
+            <form id="admin-book-form" class="admin-form">
+              <div class="field"><label for="new-title">Judul buku</label><input id="new-title" required maxlength="200"></div>
+              <div class="field"><label for="new-author">Penulis</label><input id="new-author" required maxlength="160"></div>
+              <div class="field"><label for="new-isbn">ISBN (opsional)</label><input id="new-isbn" maxlength="32"></div>
+              <div class="field"><label for="new-stock">Stok tersedia</label><input id="new-stock" type="number" min="0" max="100000" value="1" required></div>
+              <div class="field"><label for="new-category">Kategori</label><select id="new-category"><option value="">Tanpa kategori</option></select></div>
+              <button class="primary-button" type="submit">Tambah buku</button>
+            </form>
+            <div class="section-heading"><div><h3>Semua peminjaman</h3></div></div>
+            <div id="admin-loan-list" class="loan-list"></div>
+          </section>
+        </section>
       </div>
     </section>
   </main>

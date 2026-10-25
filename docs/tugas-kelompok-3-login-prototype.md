@@ -2,7 +2,7 @@
 
 **Proyek:** E-Library — Kelompok 5  
 **Versi:** 1.0  
-**Status:** UI login web dan Flutter serta backend API tersedia di repository; build Flutter dan uji manual end-to-end masih perlu diverifikasi.
+**Status:** API login dan UI web/Flutter tersedia; katalog dan alur peminjaman terlindungi ditambahkan. CI memeriksa API dan widget Flutter; pengujian manual masih diperlukan.
 
 ## 1. Tujuan
 
@@ -106,9 +106,11 @@ Bentuk respons sukses di atas merupakan kontrak yang harus disepakati/diimplemen
 - [x] Tampilan login Flutter dibuat.
 - [x] Validasi input dasar, loading, pesan error, dan state sukses ditambahkan.
 - [x] Kedua klien memakai POST /api/auth/login dan mengharapkan accessToken serta data pengguna.
-- [ ] Build Flutter telah dijalankan pada emulator/perangkat — belum diverifikasi dari environment repository.
+- [x] Endpoint profil terlindungi dipakai sebagai guard sebelum menampilkan area login sukses.
+- [x] Area katalog/peminjaman Member dan panel kelola buku Admin tersedia pada web dan Flutter.
+- [ ] Build APK dan uji manual pada emulator/perangkat — belum diverifikasi.
 - [ ] Login sukses dan login gagal telah diuji secara manual di browser/emulator — belum diverifikasi.
-- [ ] CORS web, token, role, dan akses endpoint terlindungi telah diuji end-to-end — belum dilakukan.
+- [ ] CORS dan integrasi visual lintas perangkat telah diuji manual end-to-end — belum dilakukan.
 
 ## 7. Kesimpulan
 

@@ -63,17 +63,24 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _searchController = TextEditingController();
 
   bool _loading = false;
   bool _hidePassword = true;
+  bool _loadingLibrary = false;
   String? _errorMessage;
+  String? _libraryError;
   String? _successMessage;
   String? _accessTokenInMemory;
+  Map<String, dynamic>? _currentUser;
+  List<Map<String, dynamic>> _books = [];
+  List<Map<String, dynamic>> _loans = [];
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -117,17 +124,7 @@ class _LoginPageState extends State<LoginPage> {
           )
           .timeout(const Duration(seconds: 15));
 
-      Map<String, dynamic> data;
-      try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is! Map<String, dynamic>) {
-          throw const FormatException('Respons JSON tidak berbentuk object.');
-        }
-        data = decoded;
-      } on FormatException {
-        throw Exception('Respons server bukan JSON yang valid.');
-      }
-
+      final data = _decodeResponse(response);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final error = data['error'];
         final message = error is Map<String, dynamic>
@@ -150,18 +147,16 @@ class _LoginPageState extends State<LoginPage> {
       final user = data['user'] is Map<String, dynamic>
           ? data['user'] as Map<String, dynamic>
           : <String, dynamic>{};
-      final displayName = user['name']?.toString().isNotEmpty == true
-          ? user['name'].toString()
-          : (_emailController.text.trim());
-      final role = user['role']?.toString() ?? 'belum dikirim server';
 
       if (!mounted) return;
       setState(() {
         _accessTokenInMemory = token;
+        _currentUser = user;
         _passwordController.clear();
-        _successMessage =
-            'Login berhasil. Pengguna: $displayName · Role: $role. Token hanya dipegang sementara di memori aplikasi.';
+        _successMessage = null;
+        _errorMessage = null;
       });
+      await _refreshLibrary();
     } on Exception catch (error) {
       if (!mounted) return;
       final text = error.toString().replaceFirst('Exception: ', '');
@@ -177,8 +172,518 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Map<String, dynamic> _decodeResponse(http.Response response) {
+    if (response.body.trim().isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('Respons JSON bukan object.');
+      }
+      return decoded;
+    } on FormatException {
+      throw Exception('Respons API bukan JSON yang valid.');
+    }
+  }
+
+  Future<Map<String, dynamic>> _apiRequest(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    final base = apiBaseUrl.replaceFirst(RegExp(r'/+$'), '');
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      if (body != null) 'Content-Type': 'application/json',
+      if (_accessTokenInMemory != null)
+        'Authorization': 'Bearer ' + _accessTokenInMemory!,
+    };
+    final uri = Uri.parse(base + path);
+    late http.Response response;
+
+    switch (method) {
+      case 'GET':
+        response = await http.get(uri, headers: headers)
+            .timeout(const Duration(seconds: 15));
+        break;
+      case 'POST':
+        response = await http.post(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
+        break;
+      case 'PATCH':
+        response = await http.patch(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
+        break;
+      case 'DELETE':
+        response = await http.delete(uri, headers: headers)
+            .timeout(const Duration(seconds: 15));
+        break;
+      default:
+        throw Exception('Metode HTTP tidak didukung.');
+    }
+
+    if (response.statusCode == 204) return <String, dynamic>{};
+    final data = _decodeResponse(response);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final error = data['error'];
+      final detail = error is Map<String, dynamic>
+          ? error['message']?.toString()
+          : data['message']?.toString();
+      throw Exception(
+        detail?.isNotEmpty == true
+            ? detail!
+            : 'Permintaan API gagal dengan HTTP ' +
+                response.statusCode.toString() + '.',
+      );
+    }
+    return data;
+  }
+
+  Future<void> _refreshLibrary({String? query}) async {
+    if (_accessTokenInMemory == null) return;
+    setState(() {
+      _loadingLibrary = true;
+      _libraryError = null;
+    });
+
+    try {
+      final profile = await _apiRequest('GET', '/auth/me');
+      final profileData = profile['data'];
+      final current = profileData is Map<String, dynamic>
+          ? profileData
+          : (_currentUser ?? <String, dynamic>{});
+      final search = (query ?? _searchController.text).trim();
+      final path = '/books' +
+          (search.isEmpty ? '' : '?q=' + Uri.encodeQueryComponent(search));
+      final booksResponse = await _apiRequest('GET', path);
+      final role = current['role']?.toString() ?? 'member';
+      final loansResponse = await _apiRequest(
+        'GET',
+        role == 'admin' ? '/admin/loans' : '/loans/my',
+      );
+      final rawBooks = booksResponse['data'];
+      final rawLoans = loansResponse['data'];
+
+      if (!mounted) return;
+      setState(() {
+        _currentUser = current;
+        _books = rawBooks is List
+            ? rawBooks.whereType<Map<String, dynamic>>().toList()
+            : <Map<String, dynamic>>[];
+        _loans = rawLoans is List
+            ? rawLoans.whereType<Map<String, dynamic>>().toList()
+            : <Map<String, dynamic>>[];
+      });
+    } on Exception catch (error) {
+      if (mounted) {
+        setState(() {
+          _libraryError = error.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loadingLibrary = false);
+    }
+  }
+
+  void _notify(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _borrowBook(int bookId) async {
+    try {
+      await _apiRequest('POST', '/loans', body: {'bookId': bookId});
+      _notify('Buku berhasil dipinjam.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _returnLoan(int loanId) async {
+    try {
+      final isAdmin = _currentUser?['role'] == 'admin';
+      if (isAdmin) {
+        await _apiRequest(
+          'PATCH',
+          '/admin/loans/' + loanId.toString() + '/status',
+          body: {'status': 'returned'},
+        );
+      } else {
+        await _apiRequest('POST', '/loans/' + loanId.toString() + '/return');
+      }
+      _notify('Status peminjaman diperbarui.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  void _logout() {
+    setState(() {
+      _accessTokenInMemory = null;
+      _currentUser = null;
+      _books = [];
+      _loans = [];
+      _libraryError = null;
+      _errorMessage = null;
+      _successMessage = null;
+      _passwordController.clear();
+      _searchController.clear();
+    });
+  }
+
+  Future<void> _showAddBookDialog() async {
+    final titleController = TextEditingController();
+    final authorController = TextEditingController();
+    final stockController = TextEditingController(text: '1');
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Tambah buku'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Judul buku'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: authorController,
+                decoration: const InputDecoration(labelText: 'Penulis'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: stockController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Stok tersedia'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+
+    final title = titleController.text.trim();
+    final author = authorController.text.trim();
+    final stock = int.tryParse(stockController.text.trim());
+    titleController.dispose();
+    authorController.dispose();
+    stockController.dispose();
+    if (result != true) return;
+    if (title.length < 2 || author.length < 2 || stock == null || stock < 0) {
+      _notify('Isi judul, penulis, dan stok dengan benar.');
+      return;
+    }
+    try {
+      await _apiRequest('POST', '/admin/books', body: {
+        'title': title,
+        'author': author,
+        'stock': stock,
+        'description': '',
+      });
+      _notify('Buku baru berhasil ditambahkan.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _editBook(Map<String, dynamic> book) async {
+    final controller = TextEditingController(
+      text: book['title']?.toString() ?? '',
+    );
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Ubah judul buku'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Judul buku'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+    final title = controller.text.trim();
+    controller.dispose();
+    if (result != true || title.isEmpty) return;
+    try {
+      await _apiRequest(
+        'PATCH',
+        '/admin/books/' + book['id'].toString(),
+        body: {'title': title},
+      );
+      _notify('Judul buku diperbarui.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _deleteBook(int bookId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus buku?'),
+        content: const Text(
+          'Buku yang memiliki riwayat peminjaman tidak dapat dihapus.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _apiRequest('DELETE', '/admin/books/' + bookId.toString());
+      _notify('Buku berhasil dihapus.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Widget _buildLibrary() {
+    final isAdmin = _currentUser?['role'] == 'admin';
+    final username = _currentUser?['name']?.toString() ?? 'Pengguna';
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('E-Library'),
+        actions: [
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Tambah buku',
+              onPressed: _showAddBookDialog,
+              icon: const Icon(Icons.add),
+            ),
+          IconButton(
+            tooltip: 'Keluar',
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => _refreshLibrary(),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Halo, ' + username,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E3A5F),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isAdmin
+                  ? 'Admin · kelola katalog dan peminjaman'
+                  : 'Member · temukan buku dan kelola pinjaman',
+              style: const TextStyle(color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) => _refreshLibrary(query: value),
+              decoration: InputDecoration(
+                hintText: 'Cari judul atau penulis',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  tooltip: 'Cari',
+                  onPressed: () => _refreshLibrary(query: _searchController.text),
+                  icon: const Icon(Icons.arrow_forward),
+                ),
+              ),
+            ),
+            if (_loadingLibrary) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(),
+            ],
+            if (_libraryError != null) ...[
+              const SizedBox(height: 12),
+              _StatusBox(text: _libraryError!, success: false),
+            ],
+            const SizedBox(height: 20),
+            const Text(
+              'Katalog buku',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            if (_books.isEmpty && !_loadingLibrary)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Belum ada buku yang dapat ditampilkan.'),
+                ),
+              ),
+            ..._books.map((book) {
+              final id = (book['id'] as num?)?.toInt() ?? 0;
+              final stock = (book['stock'] as num?)?.toInt() ?? 0;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        book['title']?.toString() ?? 'Judul buku',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF1E3A5F),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Penulis: ' + (book['author']?.toString() ?? '-')),
+                      const SizedBox(height: 6),
+                      Text(
+                        book['description']?.toString() ?? '',
+                        style: const TextStyle(color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        (book['categoryName']?.toString() ?? 'Tanpa kategori') +
+                            ' · Stok: ' + stock.toString(),
+                      ),
+                      const SizedBox(height: 10),
+                      if (!isAdmin)
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: stock > 0 ? () => _borrowBook(id) : null,
+                            child: Text(stock > 0 ? 'Pinjam buku' : 'Stok habis'),
+                          ),
+                        )
+                      else
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            OutlinedButton(
+                              onPressed: () => _editBook(book),
+                              child: const Text('Ubah judul'),
+                            ),
+                            OutlinedButton(
+                              onPressed: () => _deleteBook(id),
+                              child: const Text('Hapus'),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
+            Text(
+              isAdmin ? 'Semua peminjaman' : 'Peminjaman saya',
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            if (_loans.isEmpty && !_loadingLibrary)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Belum ada data peminjaman.'),
+                ),
+              ),
+            ..._loans.map((loan) {
+              final id = (loan['id'] as num?)?.toInt() ?? 0;
+              final status = loan['status']?.toString() ?? '-';
+              final children = <Widget>[
+                Text(
+                  loan['bookTitle']?.toString() ?? 'Buku',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                if (isAdmin)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'Peminjam: ' +
+                          (loan['userName']?.toString() ??
+                              loan['userEmail']?.toString() ??
+                              '-'),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Jatuh tempo: ' + (loan['dueDate']?.toString() ?? '-'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('Status: ' + status),
+                ),
+                if (status == 'borrowed')
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => _returnLoan(id),
+                      child: const Text('Tandai dikembalikan'),
+                    ),
+                  ),
+              ];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: children,
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_accessTokenInMemory != null && _currentUser != null) {
+      return _buildLibrary();
+    }
     const primary = Color(0xFF1E3A5F);
     const accent = Color(0xFF14B8A6);
 
@@ -295,17 +800,11 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _errorMessage!,
-                            success: false,
-                          ),
+                          _StatusBox(text: _errorMessage!, success: false),
                         ],
                         if (_successMessage != null) ...[
                           const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _successMessage!,
-                            success: true,
-                          ),
+                          _StatusBox(text: _successMessage!, success: true),
                         ],
                         const SizedBox(height: 24),
                         SizedBox(
