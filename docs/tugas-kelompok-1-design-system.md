@@ -123,21 +123,18 @@ Gunakan hover/focus bila kartu dapat dipilih atau diklik.
 - **Halaman admin** berfokus pada pengelolaan buku dan rekap; navigasi dan fitur menyesuaikan role admin.
 - Tampilan navigasi bukan pengganti otorisasi. Izin akses tetap harus diverifikasi oleh backend.
 
-## 6. Pratinjau visual
-Visual berikut merupakan mockup/referensi statis untuk menunjukkan arah desain; ini bukan tangkapan layar dari aplikasi final.
+## 6. Bukti visual
+Berikut adalah hasil render visual dari preview HTML/CSS yang disimpan di repository. Preview ini menunjukkan baseline komponen dan bukan screenshot dari aplikasi akhir yang telah terintegrasi dengan API.
 
 ![Pratinjau visual Design System E-Library](assets/design-system-preview.svg)
 
-- [Buka pratinjau HTML/CSS di repository](../frontend/web/design-system-preview.html)
-- [Buka file SVG pratinjau](assets/design-system-preview.svg)
+- [Buka pratinjau HTML/CSS](../frontend/web/design-system-preview.html)
+- [Buka file SVG pratinjau lengkap](assets/design-system-preview.svg)
+- [Bukti visual Button — normal, focus, dan disabled](assets/design-system-button-states.png)
+- [Bukti visual Card buku](assets/design-system-card.png)
+- [Bukti visual Input — normal dan error](assets/design-system-input-error.png)
 
-### Screenshot dari implementasi
-Untuk memenuhi bukti screenshot pada modul, buka file HTML di browser atau terapkan komponennya pada aplikasi web, lalu simpan screenshot hasil render yang benar-benar terlihat di browser pada folder `docs/assets/`.
-
-- [ ] Screenshot Button: normal dan state interaktif/disabled.
-- [ ] Screenshot Card: normal dan hover/focus jika relevan.
-- [ ] Screenshot Input: normal dan error.
-- [x] Mockup visual acuan Button, Card, Input, token warna, dan arah halaman publik/admin tersedia.
+Screenshot komponen di atas menunjukkan kondisi normal serta state interaktif/error yang dibutuhkan. Gunakan preview HTML untuk memeriksa ulang style jika diperlukan.
 
 ## 7. Keputusan baseline
 - Warna: Primary `#1E3A5F`, Accent `#14B8A6`, Surface `#F8FAFC`.
@@ -157,4 +154,5 @@ Untuk memenuhi bukti screenshot pada modul, buka file HTML di browser atau terap
 - [x] Pendekatan komponen serta perbedaan halaman publik/admin didokumentasikan.
 - [x] Mockup visual acuan dibuat.
 - [ ] Screenshot dari implementasi yang dijalankan ditambahkan.
-- [ ] Setelah screenshot ada, lakukan pengecekan akhir dan merge hasil penyelesaian Tugas Kelompok 1 sebelum lanjut ke Tugas Kelompok 2.
+- [x] Bukti visual komponen sudah ditambahkan ke folder `docs/assets/`.
+- [ ] Periksa hasil akhir di GitHub dan lanjutkan ke Tugas Kelompok 2 setelah Tugas Kelompok 1 ditetapkan selesai.
