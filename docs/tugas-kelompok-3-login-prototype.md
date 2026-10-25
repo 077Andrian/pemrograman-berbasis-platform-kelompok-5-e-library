@@ -24,7 +24,7 @@ Halaman mengikuti baseline Design System Tugas Kelompok 1: Primary #1E3A5F, Acce
 - [Aplikasi Flutter](../frontend/mobile/lib/main.dart)
 - [pubspec.yaml](../frontend/mobile/pubspec.yaml)
 
-UI mobile menggunakan Material 3 dengan token warna yang sama, validasi email dan kata sandi, tombol tampil/sembunyikan kata sandi, loading state, pesan error, dan hasil autentikasi.
+UI mobile menggunakan Material 3 dengan token warna yang sama, mode registrasi Member dan login, validasi nama/email/kata sandi, tombol tampil/sembunyikan kata sandi, loading state, pesan error, dan hasil autentikasi.
 
 ## 3. Kontrak API yang digunakan kedua klien
 
@@ -105,6 +105,7 @@ Bentuk respons sukses di atas merupakan kontrak yang harus disepakati/diimplemen
 - [x] Struktur halaman login web dibuat.
 - [x] Tampilan login Flutter dibuat.
 - [x] Validasi input dasar, loading, pesan error, dan state sukses ditambahkan.
+- [x] Registrasi Member tersedia di web dan Flutter, memakai endpoint yang sama dengan backend.
 - [x] Kedua klien memakai POST /api/auth/login dan mengharapkan accessToken serta data pengguna.
 - [x] Endpoint profil terlindungi dipakai sebagai guard sebelum menampilkan area login sukses.
 - [x] Area katalog/peminjaman Member dan panel kelola buku Admin tersedia pada web dan Flutter.

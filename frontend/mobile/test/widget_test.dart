@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:elibrary_mobile/main.dart';
 
@@ -10,6 +11,7 @@ void main() {
     expect(find.text('Email'), findsOneWidget);
     expect(find.text('Kata sandi'), findsOneWidget);
     expect(find.text('Masuk'), findsOneWidget);
+    expect(find.text('Belum punya akun? Daftar'), findsOneWidget);
   });
 
   testWidgets('password visibility can be toggled', (tester) async {
@@ -20,5 +22,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Sembunyikan kata sandi'), findsOneWidget);
+  });
+
+  testWidgets('register mode reveals required name field', (tester) async {
+    await tester.pumpWidget(const ELibraryApp());
+
+    await tester.ensureVisible(find.text('Belum punya akun? Daftar'));
+    await tester.tap(find.text('Belum punya akun? Daftar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buat akun E-Library'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(3));
+    expect(find.text('Daftar'), findsOneWidget);
+    expect(find.text('Sudah punya akun? Masuk'), findsOneWidget);
   });
 }

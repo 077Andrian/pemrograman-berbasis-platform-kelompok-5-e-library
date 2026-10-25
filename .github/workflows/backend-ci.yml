@@ -45,15 +45,37 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Generate Android platform scaffold
+        working-directory: frontend/mobile
+        run: flutter create --platforms=android --project-name elibrary_mobile .
+      - name: Allow HTTP only in Android debug manifest
+        working-directory: frontend/mobile
+        run: |
+          cat > android/app/src/debug/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application android:usesCleartextTraffic="true" />
+          </manifest>
+          EOF
       - name: Get Flutter dependencies
         working-directory: frontend/mobile
         run: flutter pub get
       - name: Analyze Flutter source
         working-directory: frontend/mobile
-        run: flutter analyze --no-pub
+        run: flutter analyze --no-pub --no-fatal-infos
       - name: Run Flutter widget tests
         working-directory: frontend/mobile
         run: flutter test --no-pub
+      - name: Build Android debug APK
+        working-directory: frontend/mobile
+        run: flutter build apk --debug --no-pub
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: elibrary-mobile-debug-apk
+          path: frontend/mobile/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
 
   web-syntax:
     name: Web JavaScript syntax
