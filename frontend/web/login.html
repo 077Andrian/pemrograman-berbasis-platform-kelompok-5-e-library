@@ -31,6 +31,12 @@
         <p class="intro" id="page-intro">Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.</p>
 
         <form id="login-form" novalidate>
+          <div class="field" id="name-field" hidden>
+            <label for="name">Nama lengkap</label>
+            <input id="name" name="name" type="text" autocomplete="name"
+                   placeholder="Nama lengkap" maxlength="80">
+            <small class="field-error" id="name-error"></small>
+          </div>
           <div class="field">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" autocomplete="username"
@@ -52,6 +58,7 @@
             <span id="button-label">Masuk</span>
           </button>
         </form>
+        <button type="button" class="auth-mode-toggle" id="auth-mode-toggle">Belum punya akun? Daftar</button>
 
         <p class="support-note" id="support-note">Prototipe login · membutuhkan backend API yang aktif.</p>
 
