@@ -2,7 +2,7 @@
 
 **Proyek:** E-Library — Kelompok 5  
 **Versi:** 1.0  
-**Status:** API login dan UI web/Flutter tersedia; katalog dan alur peminjaman terlindungi ditambahkan. CI memeriksa API dan widget Flutter; pengujian manual masih diperlukan.
+**Status:** API autentikasi, UI web/Flutter, katalog, dan alur peminjaman terlindungi sudah diimplementasikan. CI lulus untuk backend, sintaks JavaScript, analisis/widget test Flutter, dan build APK debug; smoke test manual masih disarankan.
 
 ## 1. Tujuan
 
@@ -62,7 +62,7 @@ Contoh respons gagal:
       }
     }
 
-Bentuk respons sukses di atas merupakan kontrak yang harus disepakati/diimplementasikan backend. Jika backend memilih bentuk berbeda, backend dan kedua klien perlu diperbarui bersama melalui Pull Request.
+Backend saat ini menerapkan bentuk respons sukses di atas. Jika bentuk respons berubah, backend dan kedua klien perlu diperbarui bersama melalui Pull Request.
 
 ## 4. Konfigurasi dan cara mencoba
 
@@ -109,7 +109,8 @@ Bentuk respons sukses di atas merupakan kontrak yang harus disepakati/diimplemen
 - [x] Kedua klien memakai POST /api/auth/login dan mengharapkan accessToken serta data pengguna.
 - [x] Endpoint profil terlindungi dipakai sebagai guard sebelum menampilkan area login sukses.
 - [x] Area katalog/peminjaman Member dan panel kelola buku Admin tersedia pada web dan Flutter.
-- [ ] Build APK dan uji manual pada emulator/perangkat — belum diverifikasi.
+- [x] APK debug berhasil dibangun oleh GitHub Actions CI.
+- [ ] Uji manual pada browser dan Android Emulator/perangkat — masih perlu dilakukan oleh tim sebelum presentasi.
 - [ ] Login sukses dan login gagal telah diuji secara manual di browser/emulator — belum diverifikasi.
 - [ ] CORS dan integrasi visual lintas perangkat telah diuji manual end-to-end — belum dilakukan.
 
