@@ -11,7 +11,7 @@ class ApiError extends Error {
 
 function signAccessToken(user) {
   const secret = process.env.JWT_SECRET;
-  if (!secret || secret.length < 32) {
+  if (!secret || secret.length < 32 || /GANTI_DENGAN|CHANGE_ME|REPLACE_ME|YOUR_SECRET/i.test(secret)) {
     throw new Error('JWT_SECRET belum dikonfigurasi dengan aman.');
   }
   return jwt.sign(
