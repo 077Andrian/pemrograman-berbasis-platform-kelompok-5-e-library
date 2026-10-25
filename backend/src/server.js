@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32 || /GANTI_DENGAN|CHANGE_ME|REPLACE_ME|YOUR_SECRET/i.test(process.env.JWT_SECRET)) {
   console.error('Konfigurasi JWT_SECRET wajib diisi dengan secret acak minimal 32 karakter.');
   process.exit(1);
 }
