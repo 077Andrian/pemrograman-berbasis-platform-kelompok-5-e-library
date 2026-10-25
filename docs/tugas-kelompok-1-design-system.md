@@ -1,7 +1,7 @@
 # Tugas Kelompok 1 — Design System E-Library
 
 **Versi:** 1.0
-**Status:** Rancangan dasar dan contoh komponen sudah disiapkan. Screenshot dari implementasi web yang dijalankan masih perlu ditambahkan sebagai bukti akhir modul.
+**Status:** Baseline Design System v1, kode komponen, dan bukti visual render preview telah disiapkan. Preview merupakan demonstrasi UI statis dan belum terintegrasi dengan API.
 
 ## 1. Tujuan
 Menyepakati token visual dan pola komponen bersama agar halaman publik dan admin E-Library terlihat konsisten.
@@ -123,21 +123,18 @@ Gunakan hover/focus bila kartu dapat dipilih atau diklik.
 - **Halaman admin** berfokus pada pengelolaan buku dan rekap; navigasi dan fitur menyesuaikan role admin.
 - Tampilan navigasi bukan pengganti otorisasi. Izin akses tetap harus diverifikasi oleh backend.
 
-## 6. Pratinjau visual
-Visual berikut merupakan mockup/referensi statis untuk menunjukkan arah desain; ini bukan tangkapan layar dari aplikasi final.
+## 6. Bukti visual
+Berikut bukti visual hasil render preview HTML/CSS untuk Button, Card, dan Input. Gambar memperlihatkan state yang dicontohkan; ini adalah preview UI statis, bukan bukti pengujian integrasi API.
 
 ![Pratinjau visual Design System E-Library](assets/design-system-preview.svg)
 
-- [Buka pratinjau HTML/CSS di repository](../frontend/web/design-system-preview.html)
-- [Buka file SVG pratinjau](assets/design-system-preview.svg)
+- [Buka pratinjau HTML/CSS](../frontend/web/design-system-preview.html)
+- [Buka file SVG pratinjau lengkap](assets/design-system-preview.svg)
+- [Bukti visual Button — normal, focus, dan disabled](assets/design-system-button-states.png)
+- [Bukti visual Card buku](assets/design-system-card.png)
+- [Bukti visual Input — normal dan error](assets/design-system-input-error.png)
 
-### Screenshot dari implementasi
-Untuk memenuhi bukti screenshot pada modul, buka file HTML di browser atau terapkan komponennya pada aplikasi web, lalu simpan screenshot hasil render yang benar-benar terlihat di browser pada folder `docs/assets/`.
-
-- [ ] Screenshot Button: normal dan state interaktif/disabled.
-- [ ] Screenshot Card: normal dan hover/focus jika relevan.
-- [ ] Screenshot Input: normal dan error.
-- [x] Mockup visual acuan Button, Card, Input, token warna, dan arah halaman publik/admin tersedia.
+Bukti visual komponen di atas memperlihatkan kondisi normal, focus/disabled, dan error yang dicontohkan. Gunakan preview HTML untuk memeriksa ulang style jika diperlukan.
 
 ## 7. Keputusan baseline
 - Warna: Primary `#1E3A5F`, Accent `#14B8A6`, Surface `#F8FAFC`.
@@ -156,5 +153,6 @@ Untuk memenuhi bukti screenshot pada modul, buka file HTML di browser atau terap
 - [x] State normal, interaktif, dan error dijelaskan dalam contoh.
 - [x] Pendekatan komponen serta perbedaan halaman publik/admin didokumentasikan.
 - [x] Mockup visual acuan dibuat.
-- [ ] Screenshot dari implementasi yang dijalankan ditambahkan.
-- [ ] Setelah screenshot ada, lakukan pengecekan akhir dan merge hasil penyelesaian Tugas Kelompok 1 sebelum lanjut ke Tugas Kelompok 2.
+- [x] Bukti visual render preview untuk Button, Card, dan Input ditambahkan.
+- [x] Bukti visual komponen sudah ditambahkan ke folder `docs/assets/`.
+- [x] Dokumen, kode contoh, dan bukti visual diperiksa di repository; Tugas Kelompok 1 siap ditutup.
