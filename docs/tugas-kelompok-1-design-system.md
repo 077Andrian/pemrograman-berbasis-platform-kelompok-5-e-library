@@ -1,7 +1,7 @@
 # Tugas Kelompok 1 — Design System E-Library
 
 **Versi:** 1.0
-**Status:** Rancangan dasar dan contoh komponen sudah disiapkan. Screenshot dari implementasi web yang dijalankan masih perlu ditambahkan sebagai bukti akhir modul.
+**Status:** Baseline Design System v1, kode komponen, dan bukti visual render preview telah disiapkan. Preview merupakan demonstrasi UI statis dan belum terintegrasi dengan API.
 
 ## 1. Tujuan
 Menyepakati token visual dan pola komponen bersama agar halaman publik dan admin E-Library terlihat konsisten.
@@ -124,7 +124,7 @@ Gunakan hover/focus bila kartu dapat dipilih atau diklik.
 - Tampilan navigasi bukan pengganti otorisasi. Izin akses tetap harus diverifikasi oleh backend.
 
 ## 6. Bukti visual
-Berikut adalah hasil render visual dari preview HTML/CSS yang disimpan di repository. Preview ini menunjukkan baseline komponen dan bukan screenshot dari aplikasi akhir yang telah terintegrasi dengan API.
+Berikut bukti visual hasil render preview HTML/CSS untuk Button, Card, dan Input. Gambar memperlihatkan state yang dicontohkan; ini adalah preview UI statis, bukan bukti pengujian integrasi API.
 
 ![Pratinjau visual Design System E-Library](assets/design-system-preview.svg)
 
@@ -134,7 +134,7 @@ Berikut adalah hasil render visual dari preview HTML/CSS yang disimpan di reposi
 - [Bukti visual Card buku](assets/design-system-card.png)
 - [Bukti visual Input — normal dan error](assets/design-system-input-error.png)
 
-Screenshot komponen di atas menunjukkan kondisi normal serta state interaktif/error yang dibutuhkan. Gunakan preview HTML untuk memeriksa ulang style jika diperlukan.
+Bukti visual komponen di atas memperlihatkan kondisi normal, focus/disabled, dan error yang dicontohkan. Gunakan preview HTML untuk memeriksa ulang style jika diperlukan.
 
 ## 7. Keputusan baseline
 - Warna: Primary `#1E3A5F`, Accent `#14B8A6`, Surface `#F8FAFC`.
@@ -153,6 +153,6 @@ Screenshot komponen di atas menunjukkan kondisi normal serta state interaktif/er
 - [x] State normal, interaktif, dan error dijelaskan dalam contoh.
 - [x] Pendekatan komponen serta perbedaan halaman publik/admin didokumentasikan.
 - [x] Mockup visual acuan dibuat.
-- [ ] Screenshot dari implementasi yang dijalankan ditambahkan.
+- [x] Bukti visual render preview untuk Button, Card, dan Input ditambahkan.
 - [x] Bukti visual komponen sudah ditambahkan ke folder `docs/assets/`.
-- [ ] Periksa hasil akhir di GitHub dan lanjutkan ke Tugas Kelompok 2 setelah Tugas Kelompok 1 ditetapkan selesai.
+- [x] Dokumen, kode contoh, dan bukti visual diperiksa di repository; Tugas Kelompok 1 siap ditutup.
