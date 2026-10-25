@@ -63,18 +63,18 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _searchController = TextEditingController();
 
   bool _loading = false;
   bool _hidePassword = true;
+  bool _loadingLibrary = false;
   String? _errorMessage;
+  String? _libraryError;
   String? _successMessage;
   String? _accessTokenInMemory;
   Map<String, dynamic>? _currentUser;
-  final _searchController = TextEditingController();
   List<Map<String, dynamic>> _books = [];
   List<Map<String, dynamic>> _loans = [];
-  bool _loadingLibrary = false;
-  String? _libraryError;
 
   @override
   void dispose() {
@@ -124,17 +124,7 @@ class _LoginPageState extends State<LoginPage> {
           )
           .timeout(const Duration(seconds: 15));
 
-      Map<String, dynamic> data;
-      try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is! Map<String, dynamic>) {
-          throw const FormatException('Respons JSON tidak berbentuk object.');
-        }
-        data = decoded;
-      } on FormatException {
-        throw Exception('Respons server bukan JSON yang valid.');
-      }
-
+      final data = _decodeResponse(response);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final error = data['error'];
         final message = error is Map<String, dynamic>
@@ -157,6 +147,7 @@ class _LoginPageState extends State<LoginPage> {
       final user = data['user'] is Map<String, dynamic>
           ? data['user'] as Map<String, dynamic>
           : <String, dynamic>{};
+
       if (!mounted) return;
       setState(() {
         _accessTokenInMemory = token;
@@ -181,231 +172,25 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Map<String, dynamic> _decodeResponse(http.Response response) {
+    if (response.body.trim().isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('Respons JSON bukan object.');
+      }
+      return decoded;
+    } on FormatException {
+      throw Exception('Respons API bukan JSON yang valid.');
+    }
+  }
+
   Future<Map<String, dynamic>> _apiRequest(
     String method,
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final base = apiBaseUrl.replaceFirst(RegExp(r'/+
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'E',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'E-LIBRARY · KELOMPOK 5',
-                    style: TextStyle(
-                      color: primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Selamat datang kembali',
-                    style: TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.',
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      height: 1.55,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Email',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.username],
-                          validator: _validateEmail,
-                          decoration: const InputDecoration(
-                            hintText: 'nama@contoh.com',
-                            prefixIcon: Icon(Icons.mail_outline),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Kata sandi',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _hidePassword,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.password],
-                          validator: _validatePassword,
-                          onFieldSubmitted: (_) {
-                            if (!_loading) _login();
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan kata sandi',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              tooltip: _hidePassword
-                                  ? 'Tampilkan kata sandi'
-                                  : 'Sembunyikan kata sandi',
-                              onPressed: () => setState(
-                                () => _hidePassword = !_hidePassword,
-                              ),
-                              icon: Icon(
-                                _hidePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_errorMessage != null) ...[
-                          const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _errorMessage!,
-                            success: false,
-                          ),
-                        ],
-                        if (_successMessage != null) ...[
-                          const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _successMessage!,
-                            success: true,
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          height: 50,
-                          child: FilledButton(
-                            onPressed: _loading ? null : _login,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: _loading
-                                ? const SizedBox(
-                                    height: 21,
-                                    width: 21,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Masuk',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-                  const Text(
-                    'Prototipe login · membutuhkan backend API yang aktif.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 12,
-                      height: 1.5,
-                    ),
-                  ),
-                  if (_accessTokenInMemory != null)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Status autentikasi saat ini hanya disimpan di memori.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBox extends StatelessWidget {
-  const _StatusBox({required this.text, required this.success});
-
-  final String text;
-  final bool success;
-
-  @override
-  Widget build(BuildContext context) {
-    final foreground = success
-        ? const Color(0xFF115E59)
-        : const Color(0xFF991B1B);
-    final background = success
-        ? const Color(0xFFF0FDFA)
-        : const Color(0xFFFEF2F2);
-    final border = success
-        ? const Color(0xFF99F6E4)
-        : const Color(0xFFFECACA);
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: background,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(color: foreground, height: 1.45, fontSize: 13),
-      ),
-    );
-  }
-}), '');
+    final base = apiBaseUrl.replaceFirst(RegExp(r'/+$'), '');
     final headers = <String, String>{
       'Accept': 'application/json',
       if (body != null) 'Content-Type': 'application/json',
@@ -414,20 +199,25 @@ class _StatusBox extends StatelessWidget {
     };
     final uri = Uri.parse(base + path);
     late http.Response response;
+
     switch (method) {
       case 'GET':
         response = await http.get(uri, headers: headers)
             .timeout(const Duration(seconds: 15));
         break;
       case 'POST':
-        response = await http.post(uri, headers: headers,
-          body: body == null ? null : jsonEncode(body))
-            .timeout(const Duration(seconds: 15));
+        response = await http.post(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
         break;
       case 'PATCH':
-        response = await http.patch(uri, headers: headers,
-          body: body == null ? null : jsonEncode(body))
-            .timeout(const Duration(seconds: 15));
+        response = await http.patch(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
         break;
       case 'DELETE':
         response = await http.delete(uri, headers: headers)
@@ -437,34 +227,19 @@ class _StatusBox extends StatelessWidget {
         throw Exception('Metode HTTP tidak didukung.');
     }
 
-    if (response.statusCode == 204 || response.body.trim().isEmpty) {
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return <String, dynamic>{};
-      }
-      throw Exception('Permintaan API gagal dengan HTTP ' +
-          response.statusCode.toString() + '.');
-    }
-
-    Map<String, dynamic> data;
-    try {
-      final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) {
-        throw const FormatException('Respons JSON bukan object.');
-      }
-      data = decoded;
-    } on FormatException {
-      throw Exception('Respons API bukan JSON yang valid.');
-    }
-
+    if (response.statusCode == 204) return <String, dynamic>{};
+    final data = _decodeResponse(response);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final error = data['error'];
       final detail = error is Map<String, dynamic>
           ? error['message']?.toString()
           : data['message']?.toString();
-      throw Exception(detail?.isNotEmpty == true
-          ? detail!
-          : 'Permintaan API gagal dengan HTTP ' +
-              response.statusCode.toString() + '.');
+      throw Exception(
+        detail?.isNotEmpty == true
+            ? detail!
+            : 'Permintaan API gagal dengan HTTP ' +
+                response.statusCode.toString() + '.',
+      );
     }
     return data;
   }
@@ -475,24 +250,28 @@ class _StatusBox extends StatelessWidget {
       _loadingLibrary = true;
       _libraryError = null;
     });
+
     try {
       final profile = await _apiRequest('GET', '/auth/me');
       final profileData = profile['data'];
-      if (profileData is Map<String, dynamic>) _currentUser = profileData;
-
+      final current = profileData is Map<String, dynamic>
+          ? profileData
+          : (_currentUser ?? <String, dynamic>{});
       final search = (query ?? _searchController.text).trim();
       final path = '/books' +
           (search.isEmpty ? '' : '?q=' + Uri.encodeQueryComponent(search));
       final booksResponse = await _apiRequest('GET', path);
-      final role = _currentUser?['role']?.toString() ?? 'member';
+      final role = current['role']?.toString() ?? 'member';
       final loansResponse = await _apiRequest(
         'GET',
         role == 'admin' ? '/admin/loans' : '/loans/my',
       );
       final rawBooks = booksResponse['data'];
       final rawLoans = loansResponse['data'];
+
       if (!mounted) return;
       setState(() {
+        _currentUser = current;
         _books = rawBooks is List
             ? rawBooks.whereType<Map<String, dynamic>>().toList()
             : <Map<String, dynamic>>[];
@@ -546,7 +325,7 @@ class _StatusBox extends StatelessWidget {
     }
   }
 
-  Future<void> _logout() async {
+  void _logout() {
     setState(() {
       _accessTokenInMemory = null;
       _currentUser = null;
@@ -629,7 +408,9 @@ class _StatusBox extends StatelessWidget {
   }
 
   Future<void> _editBook(Map<String, dynamic> book) async {
-    final controller = TextEditingController(text: book['title']?.toString() ?? '');
+    final controller = TextEditingController(
+      text: book['title']?.toString() ?? '',
+    );
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -654,8 +435,11 @@ class _StatusBox extends StatelessWidget {
     controller.dispose();
     if (result != true || title.isEmpty) return;
     try {
-      await _apiRequest('PATCH', '/admin/books/' + book['id'].toString(),
-          body: {'title': title});
+      await _apiRequest(
+        'PATCH',
+        '/admin/books/' + book['id'].toString(),
+        body: {'title': title},
+      );
       _notify('Judul buku diperbarui.');
       await _refreshLibrary();
     } on Exception catch (error) {
@@ -668,7 +452,9 @@ class _StatusBox extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Hapus buku?'),
-        content: const Text('Buku yang memiliki riwayat peminjaman tidak dapat dihapus.'),
+        content: const Text(
+          'Buku yang memiliki riwayat peminjaman tidak dapat dihapus.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -713,7 +499,7 @@ class _StatusBox extends StatelessWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _refreshLibrary,
+        onRefresh: () => _refreshLibrary(),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -727,7 +513,9 @@ class _StatusBox extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              isAdmin ? 'Admin · kelola katalog dan peminjaman' : 'Member · temukan buku dan kelola pinjaman',
+              isAdmin
+                  ? 'Admin · kelola katalog dan peminjaman'
+                  : 'Member · temukan buku dan kelola pinjaman',
               style: const TextStyle(color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 18),
@@ -792,8 +580,10 @@ class _StatusBox extends StatelessWidget {
                         style: const TextStyle(color: Color(0xFF64748B)),
                       ),
                       const SizedBox(height: 8),
-                      Text((book['categoryName']?.toString() ?? 'Tanpa kategori') +
-                          ' · Stok: ' + stock.toString()),
+                      Text(
+                        (book['categoryName']?.toString() ?? 'Tanpa kategori') +
+                            ' · Stok: ' + stock.toString(),
+                      ),
                       const SizedBox(height: 10),
                       if (!isAdmin)
                         SizedBox(
@@ -846,12 +636,18 @@ class _StatusBox extends StatelessWidget {
                 if (isAdmin)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text('Peminjam: ' +
-                        (loan['userName']?.toString() ?? loan['userEmail']?.toString() ?? '-')),
+                    child: Text(
+                      'Peminjam: ' +
+                          (loan['userName']?.toString() ??
+                              loan['userEmail']?.toString() ??
+                              '-'),
+                    ),
                   ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text('Jatuh tempo: ' + (loan['dueDate']?.toString() ?? '-')),
+                  child: Text(
+                    'Jatuh tempo: ' + (loan['dueDate']?.toString() ?? '-'),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -885,7 +681,9 @@ class _StatusBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_accessTokenInMemory != null && _currentUser != null) return _buildLibrary();
+    if (_accessTokenInMemory != null && _currentUser != null) {
+      return _buildLibrary();
+    }
     const primary = Color(0xFF1E3A5F);
     const accent = Color(0xFF14B8A6);
 
@@ -1002,17 +800,11 @@ class _StatusBox extends StatelessWidget {
                         ),
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _errorMessage!,
-                            success: false,
-                          ),
+                          _StatusBox(text: _errorMessage!, success: false),
                         ],
                         if (_successMessage != null) ...[
                           const SizedBox(height: 16),
-                          _StatusBox(
-                            text: _successMessage!,
-                            success: true,
-                          ),
+                          _StatusBox(text: _successMessage!, success: true),
                         ],
                         const SizedBox(height: 24),
                         SizedBox(
