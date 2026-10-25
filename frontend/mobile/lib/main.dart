@@ -61,12 +61,14 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _searchController = TextEditingController();
 
   bool _loading = false;
   bool _hidePassword = true;
+  bool _isRegistering = false;
   bool _loadingLibrary = false;
   String? _errorMessage;
   String? _libraryError;
@@ -78,6 +80,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _searchController.dispose();
@@ -93,9 +96,33 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  String? _validatePassword(String? value) {
-    if ((value ?? '').isEmpty) return 'Kata sandi wajib diisi.';
+  String? _validateName(String? value) {
+    if (!_isRegistering) return null;
+    final name = (value ?? '').trim();
+    if (name.length < 2) return 'Nama minimal 2 karakter.';
+    if (name.length > 80) return 'Nama maksimal 80 karakter.';
     return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) return 'Kata sandi wajib diisi.';
+    if (_isRegistering && password.length < 8) {
+      return 'Kata sandi minimal 8 karakter.';
+    }
+    if (password.length > 72) return 'Kata sandi maksimal 72 karakter.';
+    return null;
+  }
+
+  void _toggleAuthMode() {
+    setState(() {
+      _isRegistering = !_isRegistering;
+      _errorMessage = null;
+      _successMessage = null;
+      _nameController.clear();
+      _passwordController.clear();
+      _formKey.currentState?.reset();
+    });
   }
 
   Future<void> _login() async {
@@ -110,6 +137,42 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final base = apiBaseUrl.replaceFirst(RegExp(r'/+$'), '');
+      if (_isRegistering) {
+        final registerResponse = await http
+            .post(
+              Uri.parse(base + '/auth/register'),
+              headers: const {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: jsonEncode({
+                'name': _nameController.text.trim(),
+                'email': _emailController.text.trim(),
+                'password': _passwordController.text,
+              }),
+            )
+            .timeout(const Duration(seconds: 15));
+        final registerData = _decodeResponse(registerResponse);
+        if (registerResponse.statusCode < 200 || registerResponse.statusCode >= 300) {
+          final error = registerData['error'];
+          final detail = error is Map<String, dynamic>
+              ? error['message']?.toString()
+              : registerData['message']?.toString();
+          throw Exception(detail?.isNotEmpty == true
+              ? detail!
+              : 'Pendaftaran gagal. Periksa data yang dimasukkan.');
+        }
+        if (!mounted) return;
+        setState(() {
+          _isRegistering = false;
+          _passwordController.clear();
+          _nameController.clear();
+          _successMessage = 'Pendaftaran berhasil. Silakan masuk dengan akun yang baru dibuat.';
+          _errorMessage = null;
+        });
+        return;
+      }
+
       final response = await http
           .post(
             Uri.parse(base + '/auth/login'),
@@ -726,9 +789,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Selamat datang kembali',
-                    style: TextStyle(
+                  Text(
+                    _isRegistering ? 'Buat akun E-Library' : 'Selamat datang kembali',
+                    style: const TextStyle(
                       color: Color(0xFF0F172A),
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
@@ -736,9 +799,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.',
-                    style: TextStyle(
+                  Text(
+                    _isRegistering
+                        ? 'Daftar untuk mulai meminjam buku di perpustakaan digital.'
+                        : 'Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.',
+                    style: const TextStyle(
                       color: Color(0xFF64748B),
                       height: 1.55,
                     ),
@@ -749,6 +814,24 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (_isRegistering) ...[
+                          const Text(
+                            'Nama lengkap',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _nameController,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                            validator: _validateName,
+                            decoration: const InputDecoration(
+                              hintText: 'Nama lengkap',
+                              prefixIcon: Icon(Icons.person_outline),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                         const Text(
                           'Email',
                           style: TextStyle(fontWeight: FontWeight.w700),
@@ -827,13 +910,20 @@ class _LoginPageState extends State<LoginPage> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text(
-                                    'Masuk',
-                                    style: TextStyle(
+                                : Text(
+                                    _isRegistering ? 'Daftar' : 'Masuk',
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
                           ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: _loading ? null : _toggleAuthMode,
+                          child: Text(_isRegistering
+                              ? 'Sudah punya akun? Masuk'
+                              : 'Belum punya akun? Daftar'),
                         ),
                       ],
                     ),
