@@ -272,7 +272,9 @@ class _LoginPageState extends State<LoginPage> {
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.password],
                           validator: _validatePassword,
-                          onFieldSubmitted: (_) => _loading ? null : _login(),
+                          onFieldSubmitted: (_) {
+                            if (!_loading) _login();
+                          },
                           decoration: InputDecoration(
                             hintText: 'Masukkan kata sandi',
                             prefixIcon: const Icon(Icons.lock_outline),
