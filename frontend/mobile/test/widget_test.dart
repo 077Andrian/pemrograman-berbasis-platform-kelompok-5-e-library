@@ -1,0 +1,24 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:elibrary_mobile/main.dart';
+
+void main() {
+  testWidgets('login screen renders the E-Library form', (tester) async {
+    await tester.pumpWidget(const ELibraryApp());
+
+    expect(find.text('Selamat datang kembali'), findsOneWidget);
+    expect(find.text('E-LIBRARY · KELOMPOK 5'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Kata sandi'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
+  });
+
+  testWidgets('password visibility can be toggled', (tester) async {
+    await tester.pumpWidget(const ELibraryApp());
+
+    expect(find.byTooltip('Tampilkan kata sandi'), findsOneWidget);
+    await tester.tap(find.byTooltip('Tampilkan kata sandi'));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Sembunyikan kata sandi'), findsOneWidget);
+  });
+}
