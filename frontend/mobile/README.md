@@ -25,7 +25,7 @@ Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi l
 ## Build dan test
 
     flutter pub get
-    flutter analyze
+    flutter analyze --no-fatal-infos
     flutter test
     flutter build apk --debug
 
