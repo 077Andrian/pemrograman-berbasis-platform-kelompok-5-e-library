@@ -2,7 +2,12 @@
   "use strict";
 
   const form = document.getElementById("login-form");
+  const nameField = document.getElementById("name-field");
+  const nameInput = document.getElementById("name");
+  const nameError = document.getElementById("name-error");
   const emailInput = document.getElementById("email");
+  const authModeToggle = document.getElementById("auth-mode-toggle");
+  let authMode = "login";
   const passwordInput = document.getElementById("password");
   const emailError = document.getElementById("email-error");
   const passwordError = document.getElementById("password-error");
@@ -39,8 +44,10 @@
     message.classList.toggle("success", Boolean(success));
   }
   function clearLoginErrors() {
+    nameError.textContent = "";
     emailError.textContent = "";
     passwordError.textContent = "";
+    nameInput.removeAttribute("aria-invalid");
     emailInput.removeAttribute("aria-invalid");
     passwordInput.removeAttribute("aria-invalid");
     message.hidden = true;
@@ -53,6 +60,16 @@
   function validForm() {
     let valid = true;
     const email = emailInput.value.trim();
+    if (authMode === "register") {
+      if (nameInput.value.trim().length < 2) {
+        setFieldError(nameInput, nameError, "Nama minimal 2 karakter.");
+        valid = false;
+      }
+      if (passwordInput.value.length < 8) {
+        setFieldError(passwordInput, passwordError, "Kata sandi minimal 8 karakter.");
+        valid = false;
+      }
+    }
     if (!email) {
       setFieldError(emailInput, emailError, "Email wajib diisi.");
       valid = false;
@@ -66,6 +83,23 @@
     }
     return valid;
   }
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    const registering = mode === "register";
+    nameField.hidden = !registering;
+    pageTitle.textContent = registering ? "Buat akun E-Library" : "Selamat datang kembali";
+    pageIntro.textContent = registering
+      ? "Buat akun untuk mulai meminjam buku di perpustakaan digital."
+      : "Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.";
+    buttonLabel.textContent = registering ? "Daftar" : "Masuk";
+    authModeToggle.textContent = registering
+      ? "Sudah punya akun? Masuk"
+      : "Belum punya akun? Daftar";
+    passwordInput.autocomplete = registering ? "new-password" : "current-password";
+    clearLoginErrors();
+  }
+
   async function api(path, options) {
     const settings = options || {};
     const headers = Object.assign({ "Accept": "application/json" }, settings.headers || {});
@@ -256,6 +290,7 @@
     currentUser = null;
     form.reset();
     passwordInput.value = "";
+    setAuthMode("login");
     clearLoginErrors();
     form.hidden = false;
     supportNote.hidden = false;
@@ -287,6 +322,22 @@
     button.disabled = true;
     buttonLabel.textContent = "Memeriksa...";
     try {
+      if (authMode === "register") {
+        const registered = await api("/auth/register", {
+          method: "POST",
+          auth: false,
+          body: {
+            name: nameInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value
+          }
+        });
+        emailInput.value = registered.data.email;
+        passwordInput.value = "";
+        setAuthMode("login");
+        setMessage("Pendaftaran berhasil. Silakan masuk menggunakan akun yang baru dibuat.", true);
+        return;
+      }
       const response = await api("/auth/login", {
         method: "POST", auth: false,
         body: { email: emailInput.value.trim(), password: passwordInput.value }
@@ -301,8 +352,7 @@
       form.hidden = false;
       supportNote.hidden = false;
       libraryPanel.hidden = true;
-      pageTitle.textContent = "Selamat datang kembali";
-      pageIntro.textContent = "Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.";
+      setAuthMode(authMode);
       if (error instanceof TypeError) {
         setMessage("Tidak dapat terhubung ke API. Pastikan backend aktif, URL API benar, dan CORS dikonfigurasi.");
       } else {
@@ -310,8 +360,13 @@
       }
     } finally {
       button.disabled = false;
-      buttonLabel.textContent = "Masuk";
+      buttonLabel.textContent = authMode === "register" ? "Daftar" : "Masuk";
     }
+  });
+  authModeToggle.addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
+  nameInput.addEventListener("input", () => {
+    nameInput.removeAttribute("aria-invalid");
+    nameError.textContent = "";
   });
   document.getElementById("logout-button").addEventListener("click", logout);
   document.getElementById("refresh-button").addEventListener("click", async () => {
