@@ -1,46 +1,29 @@
 # E-Library — Kelompok 5
 
-Proyek akhir mata kuliah **Pemrograman Berbasis Platform**.
+Proyek akhir mata kuliah Pemrograman Berbasis Platform.
 
-## Identitas Proyek
-- **Nama proyek:** E-Library
-- **Kelompok:** 5
-- **Pemilik repository:** Moh Andrian Maulana
-
-## Anggota Kelompok
-Lengkapi tabel ini bersama anggota kelompok. Jangan menebak nama, NIM, atau peran anggota lain.
-
-| Nama | NIM | Peran/Tanggung Jawab |
-|---|---|---|
-| Moh Andrian Maulana | 2024520077 | Diisi bersama kelompok |
-| Anggota 2 | Isi NIM | Belum ditentukan |
-| Anggota 3 | Isi NIM | Belum ditentukan |
+## Pembagian Peran
+Lihat [pembagian peran anggota](docs/pembagian-peran.md).
 
 ## Struktur Repository
 ```text
 .
 ├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   └── pull_request_template.md
 ├── backend/
 ├── docs/
+│   └── assets/
 ├── frontend/
-│   ├── mobile/
-│   └── web/
+│   ├── web/
+│   └── mobile/
 ├── .gitignore
 ├── CONTRIBUTING.md
 └── README.md
 ```
 
 ## Urutan Tugas Kelompok
-1. **Tugas Kelompok 1 — Design System:** draft awal ada di `docs/tugas-kelompok-1-design-system.md`. Selesaikan diskusi, bukti visual, review, dan merge terlebih dahulu.
-2. **Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi:** dokumentasi dibuat setelah Tugas Kelompok 1 selesai dan di-merge.
-3. **Tugas Kelompok 3 — Prototipe Login dan Guard:** dokumentasi dibuat setelah Tugas Kelompok 2 selesai dan di-merge.
+1. **Tugas Kelompok 1 — Design System:** [dokumen](docs/tugas-kelompok-1-design-system.md), [preview HTML](frontend/web/design-system-preview.html), dan [preview SVG](docs/assets/design-system-preview.svg).
+2. **Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi:** dikerjakan setelah Tugas Kelompok 1 selesai.
+3. **Tugas Kelompok 3 — Prototipe Login dan Guard:** dikerjakan setelah Tugas Kelompok 2 selesai.
 
-## Menjalankan Proyek
-Petunjuk menjalankan backend, web, dan aplikasi mobile akan dilengkapi setelah stack teknologi dan konfigurasi API disepakati kelompok. Lihat README di masing-masing folder.
-
-## Keamanan
-- Jangan commit file `.env`, token JWT, password, atau credential.
-- Simpan konfigurasi lokal di file `.env` yang tidak dilacak Git.
-- Gunakan placeholder saat menulis dokumentasi atau mengunggah screenshot.
+## Cara Kontribusi
+Ikuti [CONTRIBUTING.md](CONTRIBUTING.md). Kerjakan lewat branch, commit, push, dan Pull Request. Jangan commit file `.env`, token, password, atau credential.
