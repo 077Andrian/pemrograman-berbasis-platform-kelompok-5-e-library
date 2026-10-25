@@ -2,7 +2,7 @@
 
 **Proyek:** E-Library — Kelompok 5  
 **Versi:** 1.0  
-**Status:** API autentikasi, UI web/Flutter, katalog, dan alur peminjaman terlindungi sudah diimplementasikan. CI lulus untuk backend, sintaks JavaScript, analisis/widget test Flutter, dan build APK debug; smoke test manual masih disarankan.
+**Status:** API autentikasi, UI web/Flutter, katalog, dan alur peminjaman terlindungi sudah diimplementasikan. CI terakhir yang diperiksa lulus untuk backend, sintaks JavaScript, analisis/widget test Flutter, dan build APK debug. Smoke test manual masih diperlukan; lihat [checklist QA](manual-smoke-test.md).
 
 ## 1. Tujuan
 
@@ -98,7 +98,7 @@ Backend saat ini menerapkan bentuk respons sukses di atas. Jika bentuk respons b
 - Klien hanya menganggap login berhasil jika respons memuat accessToken yang tidak kosong.
 - Token prototipe ditahan di memori aplikasi/halaman; tidak disimpan ke localStorage, sessionStorage, atau file.
 - Password dibersihkan dari field setelah login berhasil dan tidak ditulis ke log.
-- Prototipe belum mempunyai route guard, refresh token, logout server-side, atau manajemen sesi produksi. Penggunaan token dan proteksi layar lanjutan perlu dibahas sebelum aplikasi diperluas.
+- Kedua klien memeriksa profil melalui GET /api/auth/me sebelum menampilkan area perpustakaan; token disimpan sementara di memori selama halaman/aplikasi berjalan. Refresh halaman web atau memulai ulang aplikasi mobile mengharuskan login ulang. Refresh token, pencabutan token server-side, dan manajemen sesi produksi belum dibuat.
 
 ## 6. Status pengujian
 
@@ -116,4 +116,4 @@ Backend saat ini menerapkan bentuk respons sukses di atas. Jika bentuk respons b
 
 ## 7. Kesimpulan
 
-Prototipe frontend untuk web dan mobile sudah menjadi baseline implementasi dan mengacu pada endpoint autentikasi yang sama. Tugas ini belum membuktikan integrasi berjalan setelah automated test API berjalan sukses dan tes manual browser/emulator berhasil dijalankan.
+Prototipe frontend web dan Flutter sudah mengacu pada endpoint autentikasi yang sama, dan CI memverifikasi API, widget Flutter, sintaks web, serta build APK. Sebelum menyerahkan, tim masih harus menyelesaikan [checklist smoke test manual](manual-smoke-test.md) di browser dan perangkat/emulator.
