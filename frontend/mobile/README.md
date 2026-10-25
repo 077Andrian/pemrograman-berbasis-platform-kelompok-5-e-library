@@ -22,10 +22,11 @@ Jalankan backend pada komputer host, kemudian:
 
 Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi lalu menampilkan katalog. Member bisa mencari, meminjam, dan mengembalikan bukunya. Admin dapat mengelola buku dan status pengembalian. Token hanya disimpan di memori aplikasi; keluar akan menghapus token dari state lokal.
 
-## Test
+## Build dan test
 
     flutter pub get
     flutter analyze
     flutter test
+    flutter build apk --debug
 
-CI menjalankan analisis dan widget test untuk aplikasi mobile. Build APK dan pengujian manual pada emulator/perangkat tetap harus dilakukan sebelum presentasi final.
+GitHub Actions menjalankan analisis, widget test, dan build APK debug. Jika workflow berhasil, artefak `elibrary-mobile-debug-apk` tersedia di bagian Artifacts pada run CI selama 14 hari. Unduh APK, pindahkan ke perangkat Android untuk instalasi uji, dan jangan menganggap lolos build sebagai pengganti uji manual.
