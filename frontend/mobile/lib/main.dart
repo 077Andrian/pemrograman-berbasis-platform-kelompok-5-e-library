@@ -77,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
   Map<String, dynamic>? _currentUser;
   List<Map<String, dynamic>> _books = [];
   List<Map<String, dynamic>> _loans = [];
+  Map<String, dynamic> _leadershipStats = <String, dynamic>{};
 
   @override
   void dispose() {
@@ -325,12 +326,19 @@ class _LoginPageState extends State<LoginPage> {
           (search.isEmpty ? '' : '?q=' + Uri.encodeQueryComponent(search));
       final booksResponse = await _apiRequest('GET', path);
       final role = current['role']?.toString() ?? 'member';
-      final loansResponse = await _apiRequest(
-        'GET',
-        role == 'admin' ? '/admin/loans' : '/loans/my',
-      );
+      Map<String, dynamic>? loansResponse;
+      Map<String, dynamic>? leadershipResponse;
+      if (role == 'leadership') {
+        leadershipResponse = await _apiRequest('GET', '/leadership/stats');
+      } else {
+        loansResponse = await _apiRequest(
+          'GET',
+          role == 'librarian' ? '/admin/loans' : '/loans/my',
+        );
+      }
       final rawBooks = booksResponse['data'];
-      final rawLoans = loansResponse['data'];
+      final rawLoans = loansResponse?['data'];
+      final rawLeadership = leadershipResponse?['data'];
 
       if (!mounted) return;
       setState(() {
@@ -341,6 +349,9 @@ class _LoginPageState extends State<LoginPage> {
         _loans = rawLoans is List
             ? rawLoans.whereType<Map<String, dynamic>>().toList()
             : <Map<String, dynamic>>[];
+        _leadershipStats = rawLeadership is Map
+            ? Map<String, dynamic>.from(rawLeadership)
+            : <String, dynamic>{};
       });
     } on Exception catch (error) {
       if (mounted) {
@@ -371,8 +382,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _returnLoan(int loanId) async {
     try {
-      final isAdmin = _currentUser?['role'] == 'admin';
-      if (isAdmin) {
+      final isLibrarian = _currentUser?['role'] == 'librarian';
+      if (isLibrarian) {
         await _apiRequest(
           'PATCH',
           '/admin/loans/' + loanId.toString() + '/status',
@@ -394,6 +405,7 @@ class _LoginPageState extends State<LoginPage> {
       _currentUser = null;
       _books = [];
       _loans = [];
+      _leadershipStats = <String, dynamic>{};
       _libraryError = null;
       _errorMessage = null;
       _successMessage = null;
@@ -540,15 +552,118 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Widget _buildStatCard(String label, dynamic value) {
+    return SizedBox(
+      width: 150,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Color(0xFF64748B))),
+              const SizedBox(height: 8),
+              Text(
+                (value ?? 0).toString(),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E3A5F),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRankList(
+    String title,
+    dynamic rawRows,
+    String Function(Map<String, dynamic>) labelBuilder,
+  ) {
+    final rows = rawRows is List
+        ? rawRows.whereType<Map<String, dynamic>>().toList()
+        : <Map<String, dynamic>>[];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            if (rows.isEmpty) const Text('Belum ada data.'),
+            ...rows.map((row) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text('• ' + labelBuilder(row)),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeadershipStats() {
+    final rawSummary = _leadershipStats['summary'];
+    final summary = rawSummary is Map
+        ? Map<String, dynamic>.from(rawSummary)
+        : <String, dynamic>{};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Dashboard Pimpinan',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            _buildStatCard('Judul buku', summary['totalTitles']),
+            _buildStatCard('Stok tersedia', summary['availableCopies']),
+            _buildStatCard('Peminjaman aktif', summary['activeLoans']),
+            _buildStatCard('Total transaksi', summary['totalLoans']),
+            _buildStatCard('Anggota', summary['totalMembers']),
+          ],
+        ),
+        _buildRankList(
+          'Buku paling sering dipinjam',
+          _leadershipStats['mostBorrowed'],
+          (row) => (row['title'] ?? 'Buku').toString() +
+              ' — ' + (row['loanCount'] ?? 0).toString() + ' kali',
+        ),
+        _buildRankList(
+          'Anggota paling aktif',
+          _leadershipStats['mostActiveMembers'],
+          (row) => (row['name'] ?? row['email'] ?? 'Anggota').toString() +
+              ' — ' + (row['loanCount'] ?? 0).toString() + ' pinjaman',
+        ),
+        _buildRankList(
+          'Buku dengan stok menipis',
+          _leadershipStats['lowStockBooks'],
+          (row) => (row['title'] ?? 'Buku').toString() +
+              ' — stok ' + (row['stock'] ?? 0).toString(),
+        ),
+        const SizedBox(height: 18),
+      ],
+    );
+  }
+
   Widget _buildLibrary() {
-    final isAdmin = _currentUser?['role'] == 'admin';
+    final role = _currentUser?['role']?.toString() ?? 'member';
+    final isLibrarian = role == 'librarian';
+    final isMember = role == 'member';
+    final isLeadership = role == 'leadership';
     final username = _currentUser?['name']?.toString() ?? 'Pengguna';
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('E-Library'),
         actions: [
-          if (isAdmin)
+          if (isLibrarian)
             IconButton(
               tooltip: 'Tambah buku',
               onPressed: _showAddBookDialog,
@@ -576,9 +691,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              isAdmin
-                  ? 'Admin · kelola katalog dan peminjaman'
-                  : 'Member · temukan buku dan kelola pinjaman',
+              isLibrarian
+                  ? 'Pustakawan · kelola katalog dan sirkulasi'
+                  : isLeadership
+                      ? 'Pimpinan · ringkasan statistik perpustakaan'
+                      : 'Anggota · temukan buku dan kelola pinjaman',
               style: const TextStyle(color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 18),
@@ -603,6 +720,10 @@ class _LoginPageState extends State<LoginPage> {
             if (_libraryError != null) ...[
               const SizedBox(height: 12),
               _StatusBox(text: _libraryError!, success: false),
+            ],
+            if (isLeadership) ...[
+              const SizedBox(height: 20),
+              _buildLeadershipStats(),
             ],
             const SizedBox(height: 20),
             const Text(
@@ -648,7 +769,7 @@ class _LoginPageState extends State<LoginPage> {
                             ' · Stok: ' + stock.toString(),
                       ),
                       const SizedBox(height: 10),
-                      if (!isAdmin)
+                      if (isMember)
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton(
@@ -656,7 +777,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: Text(stock > 0 ? 'Pinjam buku' : 'Stok habis'),
                           ),
                         )
-                      else
+                      else if (isLibrarian)
                         Wrap(
                           spacing: 8,
                           children: [
@@ -675,9 +796,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               );
             }),
+            if (!isLeadership) ...[
             const SizedBox(height: 16),
             Text(
-              isAdmin ? 'Semua peminjaman' : 'Peminjaman saya',
+              isLibrarian ? 'Semua peminjaman' : 'Peminjaman saya',
               style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
@@ -696,7 +818,7 @@ class _LoginPageState extends State<LoginPage> {
                   loan['bookTitle']?.toString() ?? 'Buku',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
-                if (isAdmin)
+                if (isLibrarian)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
@@ -736,6 +858,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               );
             }),
+            ],
           ],
         ),
       ),
