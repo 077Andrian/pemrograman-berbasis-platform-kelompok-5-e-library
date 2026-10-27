@@ -1,150 +1,107 @@
 # Tugas Kelompok 2 — Matriks Auth dan Endpoint Terlindungi
 
 **Proyek:** E-Library — Kelompok 5  
-**Versi:** 1.1  
-**Status:** Kontrak autentikasi, endpoint, middleware JWT/role, dan automated test suite telah ditambahkan. Test suite harus dijalankan sebelum dinyatakan terverifikasi.
+**Versi:** 1.2  
+**Role aplikasi:** Anggota (member), Pustakawan (librarian), dan Pimpinan (leadership).
 
-## 1. Tujuan
+## 1. Prinsip
 
-Menetapkan aturan yang sama untuk autentikasi dan hak akses sebelum prototipe login web dan mobile pada Tugas Kelompok 3 dibuat. Frontend hanya mengatur tampilan; keputusan izin akses harus tetap diperiksa oleh backend.
+Frontend web dan mobile memakai API yang sama. Backend menjadi sumber kebenaran autentikasi dan otorisasi. Menyembunyikan tombol di UI tidak menggantikan pemeriksaan role di server.
 
-## 2. Role pengguna
+Pengunjung tanpa login boleh mengakses katalog publik, tetapi Guest bukan role akun dalam tiga role utama proyek.
 
-- **Guest:** pengunjung yang belum login.
-- **Member:** pengguna yang sudah login dan hanya boleh mengakses data miliknya sendiri untuk fitur akun/peminjaman.
-- **Admin:** petugas yang sudah login dan diizinkan mengelola katalog serta status peminjaman.
+## 2. Matriks hak akses
 
-Role diberikan atau diverifikasi oleh backend. Frontend tidak boleh menaikkan role berdasarkan input pengguna atau nilai yang disimpan di browser.
+| Fitur | Publik | Anggota | Pustakawan | Pimpinan |
+|---|---|---|---|---|
+| Melihat/mencari katalog dan kategori | Boleh | Boleh | Boleh | Boleh |
+| Registrasi akun | Boleh, role selalu member | Tidak perlu | Tidak | Tidak |
+| Login dan melihat profil sendiri | Login | Boleh | Boleh | Boleh |
+| Meminjam buku | Tidak | Boleh | Tidak | Tidak |
+| Melihat riwayat pinjaman sendiri | Tidak | Boleh | Tidak | Tidak |
+| Mengembalikan pinjaman sendiri | Tidak | Boleh jika status valid | Tidak melalui alur Anggota | Tidak |
+| Menambah, mengubah, menghapus buku | Tidak | Tidak | Boleh | Tidak |
+| Mengelola kategori | Tidak | Tidak | Boleh | Tidak |
+| Melihat semua peminjaman | Tidak | Tidak | Boleh | Statistik agregat saja |
+| Mengubah status pengembalian | Tidak | Tidak | Boleh | Tidak |
+| Melihat statistik koleksi dan sirkulasi | Tidak | Tidak | Tidak | Boleh |
+| Melihat buku populer, anggota aktif, stok menipis | Tidak | Tidak | Tidak | Boleh |
 
-## 3. Matriks hak akses
+**Aturan identitas:** ID pengguna untuk pinjaman berasal dari token terverifikasi, bukan dari userId yang dikirim klien. Anggota tidak dapat membaca atau mengembalikan pinjaman milik anggota lain.
 
-| Fitur | Guest | Member | Admin |
-|---|---|---|---|
-| Melihat daftar buku dan detail buku | Boleh | Boleh | Boleh |
-| Melihat kategori buku | Boleh | Boleh | Boleh |
-| Registrasi akun | Boleh | Tidak perlu | Tidak perlu |
-| Login | Boleh | Boleh | Boleh |
-| Melihat profil sendiri | Tidak boleh | Boleh | Boleh |
-| Mengajukan peminjaman | Tidak boleh | Boleh | Sesuai kebijakan aplikasi |
-| Melihat riwayat peminjaman sendiri | Tidak boleh | Boleh | Boleh melihat seluruh riwayat |
-| Mengembalikan peminjaman milik sendiri | Tidak boleh | Boleh, jika status mengizinkan | Boleh mengelola sesuai kebijakan |
-| Menambah, mengubah, dan menghapus buku | Tidak boleh | Tidak boleh | Boleh |
-| Mengelola kategori buku | Tidak boleh | Tidak boleh | Boleh |
-| Melihat seluruh peminjaman | Tidak boleh | Tidak boleh | Boleh |
-| Mengubah status peminjaman | Tidak boleh | Tidak boleh | Boleh |
+## 3. Endpoint API yang tersedia
 
-**Aturan kepemilikan:** Member hanya boleh membaca atau mengubah sumber daya yang menjadi miliknya. Mengganti ID pada URL tidak boleh memberikan akses ke data Member lain. Untuk endpoint admin, backend wajib memeriksa token dan role admin pada setiap permintaan.
+Prefix API: /api.
 
-## 4. Kontrak endpoint awal
+### Publik
 
-Prefix API yang direncanakan adalah `/api`. Path dan metode di bawah merupakan usulan kontrak agar tim frontend dan backend memakai acuan yang sama; endpoint belum dianggap tersedia sampai diimplementasikan.
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| GET | /api/health | Health check |
+| GET | /api/books | Daftar/pencarian buku dengan query q, page, limit, categoryId |
+| GET | /api/books/:id | Detail buku |
+| GET | /api/categories | Daftar kategori |
+| POST | /api/auth/register | Membuat akun Anggota |
+| POST | /api/auth/login | Login dan menerbitkan token |
 
-### Endpoint publik
+### Anggota
 
-| Method | Endpoint | Fungsi | Akses |
-|---|---|---|---|
-| GET | `/api/books` | Daftar dan pencarian buku | Publik |
-| GET | `/api/books/:id` | Detail buku | Publik |
-| GET | `/api/categories` | Daftar kategori | Publik |
-| POST | `/api/auth/register` | Membuat akun Member | Publik |
-| POST | `/api/auth/login` | Memvalidasi kredensial dan menerbitkan token | Publik |
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| GET | /api/auth/me | Profil akun aktif |
+| POST | /api/loans | Meminjam buku yang tersedia |
+| GET | /api/loans/my | Riwayat akun aktif |
+| POST | /api/loans/:id/return | Mengembalikan pinjaman sendiri |
 
-### Endpoint untuk pengguna login
+### Pustakawan
 
-| Method | Endpoint | Fungsi | Aturan |
-|---|---|---|---|
-| GET | `/api/auth/me` | Profil pengguna dari token | Member/Admin |
-| POST | `/api/loans` | Mengajukan peminjaman | Member; pemilik diambil dari token, bukan body |
-| GET | `/api/loans/my` | Riwayat pinjaman pengguna aktif | Member; hanya data sendiri |
-| POST | `/api/loans/:id/return` | Mengajukan/mencatat pengembalian | Member; harus pemilik dan status harus valid |
+Path /api/admin/... dipertahankan untuk kompatibilitas klien, tetapi seluruh endpoint berikut memerlukan token role librarian.
 
-### Endpoint khusus Admin
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| POST | /api/admin/books | Menambah buku |
+| PATCH | /api/admin/books/:id | Memperbarui buku |
+| DELETE | /api/admin/books/:id | Menghapus buku tanpa riwayat pinjaman |
+| POST | /api/admin/categories | Menambah kategori |
+| PATCH | /api/admin/categories/:id | Memperbarui kategori |
+| DELETE | /api/admin/categories/:id | Menghapus kategori yang tidak sedang dipakai |
+| GET | /api/admin/loans | Melihat semua peminjaman |
+| PATCH | /api/admin/loans/:id/status | Mencatat pengembalian yang diizinkan |
 
-| Method | Endpoint | Fungsi | Aturan |
-|---|---|---|---|
-| POST | `/api/admin/books` | Menambahkan buku | Admin |
-| PATCH | `/api/admin/books/:id` | Mengubah data buku | Admin |
-| DELETE | `/api/admin/books/:id` | Menghapus buku | Admin |
-| POST | `/api/admin/categories` | Menambahkan kategori | Admin |
-| PATCH | `/api/admin/categories/:id` | Mengubah kategori | Admin |
-| DELETE | `/api/admin/categories/:id` | Menghapus kategori | Admin |
-| GET | `/api/admin/loans` | Melihat semua peminjaman | Admin |
-| PATCH | `/api/admin/loans/:id/status` | Mengubah status peminjaman | Admin |
+### Pimpinan
 
-### Aturan implementasi endpoint
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| GET | /api/leadership/stats | Ringkasan jumlah judul, stok, transaksi, pinjaman aktif, anggota, buku populer, anggota aktif, dan stok menipis |
 
-1. Middleware autentikasi memvalidasi token sebelum handler endpoint terlindungi berjalan.
-2. Middleware otorisasi memeriksa role yang dibutuhkan; menyembunyikan tombol di frontend saja tidak cukup.
-3. Validasi data, status peminjaman, ketersediaan buku, dan kepemilikan dilakukan di server.
-4. Jangan menerima `userId` atau `role` dari body sebagai sumber identitas yang dipercaya. Ambil identitas dari klaim token terverifikasi.
-5. Penghapusan buku yang sudah mempunyai riwayat peminjaman perlu aturan bisnis; backend boleh menolak operasi tersebut daripada merusak riwayat.
-6. Jika path atau kebutuhan berubah saat implementasi, perubahan dicatat dan disepakati melalui Pull Request.
+Fitur perpanjangan, antrean reservasi, denda, dan e-book masih memerlukan endpoint tambahan.
 
-## 5. Kontrak autentikasi JWT
+## 4. Kontrak JWT dan keamanan
 
-- Setelah login berhasil, backend menerbitkan access token yang ditandatangani dengan secret/key dari konfigurasi server.
-- Klaim minimum yang direncanakan: `sub` (ID pengguna), `role`, dan `exp` (waktu kedaluwarsa). Backend tetap memvalidasi tanda tangan serta masa berlaku token.
-- Token dikirim pada request terlindungi melalui header `Authorization: Bearer <token>`.
-- Password disimpan sebagai hash yang aman, bukan plaintext; proses login membandingkan password terhadap hash.
-- Secret JWT dan kredensial database harus berada di environment variable, bukan di repository atau source frontend.
-- Web dan mobile menggunakan kontrak API serta aturan role yang sama.
-- Jangan menyimpan password di local storage atau mencatat token/password ke log. Untuk web, pilihan penyimpanan token harus mempertimbangkan risiko XSS/CSRF dan disepakati tim saat implementasi.
-- Untuk versi stateless sederhana, logout dapat menghapus token di sisi klien. Jika backend membutuhkan pencabutan token sebelum kedaluwarsa, perlu mekanisme revocation/session yang dirancang terpisah.
+- Token diterbitkan setelah kredensial tervalidasi dan menggunakan secret dari environment server.
+- Token dikirim dengan header Authorization: Bearer <token>.
+- Middleware memvalidasi signature dan expiry token, lalu memuat role aktif pengguna dari database.
+- Password disimpan menggunakan hashing bcrypt, bukan plaintext.
+- Registrasi publik tidak menerima role sebagai nilai yang dipercaya. Pustakawan dan Pimpinan dibuat melalui proses administratif.
+- Jangan commit .env, password, token, atau database lokal.
+- Gunakan HTTPS untuk deployment produksi.
 
-Contoh header:
+## 5. Format error
 
-```http
-Authorization: Bearer <access_token>
-```
+    {
+      "error": {
+        "code": "FORBIDDEN",
+        "message": "Role Anda tidak memiliki izin untuk tindakan ini."
+      }
+    }
 
-## 6. Format respons error yang disepakati
+Status utama: 400 untuk query/ID tidak valid, 401 untuk token/kredensial tidak valid, 403 untuk role yang tidak berhak, 404 untuk data tidak ditemukan, 409 untuk konflik, 422 untuk validasi, dan 500 untuk kesalahan internal.
 
-Contoh format umum:
+## 6. Rencana verifikasi
 
-```json
-{
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "Akses tidak diizinkan."
-  }
-}
-```
-
-| HTTP status | Kapan digunakan |
-|---|---|
-| 400 Bad Request | Request tidak dapat diproses karena format dasar tidak valid |
-| 401 Unauthorized | Token tidak ada, tidak valid, atau sudah kedaluwarsa; kredensial login tidak cocok |
-| 403 Forbidden | Pengguna terautentikasi tetapi role tidak memiliki izin |
-| 404 Not Found | Sumber daya tidak ditemukan atau tidak boleh diungkap keberadaannya |
-| 409 Conflict | Email sudah terdaftar atau transisi status bertentangan dengan keadaan saat ini |
-| 422 Unprocessable Entity | Field lolos parsing tetapi gagal validasi |
-| 500 Internal Server Error | Kesalahan server yang tidak terduga; jangan mengirim detail rahasia ke klien |
-
-Server sebaiknya tidak membocorkan apakah email tertentu terdaftar pada alur yang dapat dimanfaatkan untuk enumerasi akun. Pesan respons harus konsisten dan tidak memuat stack trace atau data sensitif.
-
-## 7. Skenario pengujian minimum
-
-- [ ] Guest dapat membuka daftar/detail buku dan kategori.
-- [ ] Guest menerima `401` saat mengakses `/api/auth/me` atau endpoint peminjaman tanpa token.
-- [ ] Token yang salah tanda tangan atau kedaluwarsa ditolak dengan `401`.
-- [ ] Member tidak dapat memanggil endpoint khusus Admin; respons `403`.
-- [ ] Member A tidak dapat membaca, mengubah, atau mengembalikan peminjaman Member B.
-- [ ] Backend mengabaikan `userId`/role manipulatif dari request body dan memakai identitas terverifikasi.
-- [ ] Admin yang valid dapat mengakses endpoint pengelolaan katalog dan seluruh peminjaman.
-- [ ] Password tidak pernah dikembalikan dalam respons API.
-- [ ] Input tidak valid dan konflik status menghasilkan kode HTTP serta format error yang sesuai.
-- [ ] Percobaan akses ilegal diuji di API, tidak hanya melalui tampilan frontend.
-
-## 8. Kriteria selesai Tugas Kelompok 2
-
-- [x] Role Guest, Member, dan Admin didefinisikan.
-- [x] Matriks fitur dan role disusun.
-- [x] Endpoint publik, endpoint login, dan endpoint khusus Admin didokumentasikan.
-- [x] Aturan JWT, kepemilikan data, dan format error dijelaskan.
-- [x] Skenario pengujian minimum disiapkan.
-- [x] Implementasi backend menyediakan endpoint utama sesuai kontrak (Express, SQLite, JWT, serta role middleware).
-- [x] Automated test suite ditambahkan; status hasil run CI menjadi sumber verifikasi terakhir.
-
-## 9. Langkah berikutnya
-
-Tugas Kelompok 3 dapat menggunakan kontrak ini untuk membuat prototipe login web dan mobile yang mengakses API yang sama. Tim Backend perlu mengonfirmasi path, skema database, masa berlaku token, dan alur status peminjaman sebelum API diimplementasikan.
+Jalankan npm test di folder backend. QC harus memastikan:
+1. Anggota dapat meminjam dan mengembalikan pinjaman sendiri.
+2. Anggota tidak dapat menggunakan endpoint Pustakawan.
+3. Pustakawan dapat mengelola katalog dan sirkulasi.
+4. Pimpinan dapat melihat statistik tetapi tidak dapat mengubah katalog.
+5. Endpoint terlindungi menolak request tanpa token.
