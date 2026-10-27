@@ -12,7 +12,7 @@ db.pragma('journal_mode = WAL');
 db.exec(
   'CREATE TABLE IF NOT EXISTS users (' +
   'id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE COLLATE NOCASE, ' +
-  'password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN (\'member\', \'admin\')), ' +
+  'password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN (\'member\', \'librarian\', \'leadership\')), ' +
   'created_at TEXT NOT NULL);' +
   'CREATE TABLE IF NOT EXISTS categories (' +
   'id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE COLLATE NOCASE, ' +
@@ -33,6 +33,40 @@ db.exec(
   'CREATE INDEX IF NOT EXISTS idx_loans_book ON loans(book_id);' +
   'CREATE INDEX IF NOT EXISTS idx_books_category ON books(category_id);'
 );
+
+function migrateUserRoles() {
+  const userTable = db.prepare(
+    "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'"
+  ).get();
+  const schema = userTable && userTable.sql ? userTable.sql : '';
+  if (schema.includes("'librarian'") && schema.includes("'leadership'")) return;
+
+  // Existing local databases used the old member/admin roles. Preserve the data
+  // and map old Admin accounts to the new Pustakawan role during migration.
+  db.pragma('foreign_keys = OFF');
+  try {
+    const migrate = db.transaction(() => {
+      db.exec(
+        "CREATE TABLE users_new (" +
+        "id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE COLLATE NOCASE, " +
+        "password_hash TEXT NOT NULL, role TEXT NOT NULL " +
+        "CHECK(role IN ('member', 'librarian', 'leadership')), created_at TEXT NOT NULL)"
+      );
+      db.exec(
+        "INSERT INTO users_new (id, name, email, password_hash, role, created_at) " +
+        "SELECT id, name, email, password_hash, " +
+        "CASE role WHEN 'admin' THEN 'librarian' ELSE role END, created_at FROM users"
+      );
+      db.exec('DROP TABLE users');
+      db.exec('ALTER TABLE users_new RENAME TO users');
+    });
+    migrate();
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+}
+
+migrateUserRoles();
 
 function seedCatalog() {
   const now = new Date().toISOString();
