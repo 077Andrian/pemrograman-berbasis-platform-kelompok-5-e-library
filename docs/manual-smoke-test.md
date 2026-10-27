@@ -1,83 +1,79 @@
 # Checklist Smoke Test Manual — E-Library Kelompok 5
 
-**Tujuan:** memastikan aplikasi berjalan di komputer anggota kelompok, melampaui hasil automated test di CI.
+**Tujuan:** memastikan aplikasi berjalan di komputer anggota kelompok dan sesuai tiga role resmi: Anggota, Pustakawan, dan Pimpinan.
 
-> Tandai kotak setelah langkah benar-benar dicoba. Jangan menganggap tes manual selesai hanya karena workflow CI hijau.
+> Centang kotak hanya setelah langkah benar-benar dicoba. Hasil CI hijau bukan pengganti uji manual.
 
 ## A. Persiapan backend
 
 - [ ] Pastikan Node.js 24 dan npm tersedia.
-- [ ] Masuk ke folder backend.
-- [ ] Instal paket dengan npm install.
-- [ ] Salin backend/.env.example menjadi backend/.env dan isi JWT_SECRET dengan secret acak minimal 32 karakter.
-- [ ] Pastikan CORS_ORIGINS memuat http://localhost:5500 dan http://127.0.0.1:5500 untuk web lokal.
-- [ ] Buat akun admin dengan perintah pada backend/README.md. Gunakan password milik tim minimal 12 karakter; jangan menulis password tersebut di repository atau screenshot.
+- [ ] Masuk ke folder backend dan jalankan npm install.
+- [ ] Salin .env.example menjadi .env; isi JWT_SECRET dengan secret acak minimal 32 karakter.
+- [ ] Pastikan CORS_ORIGINS mengizinkan origin web lokal yang dipakai.
+- [ ] Jalankan npm test, lalu catat hasil.
 - [ ] Jalankan npm run dev.
-- [ ] Buka http://localhost:3000/api/health dan pastikan respons menunjukkan status ok.
-- [ ] Buka http://localhost:3000/api/books dan pastikan daftar buku contoh muncul.
+- [ ] Buka http://localhost:3000/api/health dan pastikan status ok.
+- [ ] Buka http://localhost:3000/api/books dan pastikan buku contoh muncul.
+- [ ] Buat akun Pustakawan dan Pimpinan dengan perintah pada backend/README.md.
 
-## B. Frontend web
+## B. Frontend web — Anggota
 
-1. Masuk ke folder frontend/web dan jalankan server statis, misalnya python -m http.server 5500.
-2. Buka http://localhost:5500/login.html.
+- [ ] Buka http://localhost:5500/login.html.
+- [ ] Registrasi Anggota dengan data valid.
+- [ ] Registrasi email duplikat ditolak.
+- [ ] Login dengan password salah ditolak.
+- [ ] Login Anggota berhasil dan katalog tampil.
+- [ ] Pencarian judul, pengarang, dan ISBN bekerja.
+- [ ] Filter kategori bekerja.
+- [ ] Anggota dapat meminjam buku dengan stok tersedia.
+- [ ] Stok berkurang dan riwayat peminjaman muncul.
+- [ ] Anggota dapat mengembalikan pinjaman sendiri; stok bertambah kembali.
+- [ ] Logout kembali ke form login.
 
-- [ ] Halaman login tampil dengan baik dan tidak ada error JavaScript di Console.
-- [ ] Registrasi Member dengan data valid berhasil.
-- [ ] Registrasi dengan email duplikat menampilkan pesan error.
-- [ ] Login dengan password salah ditolak dan tidak menampilkan area perpustakaan.
-- [ ] Login dengan akun Member berhasil dan memunculkan katalog.
-- [ ] Pencarian buku dan filter kategori bekerja.
-- [ ] Member bisa meminjam buku yang stoknya tersedia.
-- [ ] Stok buku berkurang setelah dipinjam dan riwayat peminjaman tampil.
-- [ ] Member bisa mengembalikan pinjaman sendiri; stok tersedia bertambah kembali.
-- [ ] Logout kembali ke form login; refresh halaman meminta login lagi.
-- [ ] Login dengan akun Admin menampilkan panel pengelolaan.
-- [ ] Admin dapat menambah dan mengubah buku.
-- [ ] Admin dapat menghapus buku yang belum memiliki riwayat pinjaman.
-- [ ] Admin dapat melihat seluruh peminjaman dan menandai peminjaman sebagai dikembalikan.
-- [ ] Member yang mencoba memanggil endpoint admin menerima status 403 (uji dengan REST Client/Postman atau DevTools).
+## C. Frontend web — Pustakawan
 
-## C. Flutter Android
+- [ ] Login dengan akun Pustakawan berhasil.
+- [ ] Role tampil sebagai Pustakawan dan panel Kelola katalog muncul.
+- [ ] Pustakawan dapat menambah buku.
+- [ ] Pustakawan dapat mengubah judul buku.
+- [ ] Pustakawan dapat menghapus buku tanpa riwayat pinjaman.
+- [ ] Pustakawan dapat melihat semua peminjaman.
+- [ ] Pustakawan dapat menandai peminjaman sebagai dikembalikan.
 
-1. Masuk ke frontend/mobile.
-2. Jika belum ada folder platform Android, jalankan flutter create --platforms=android --project-name elibrary_mobile .
-3. Jalankan flutter pub get.
-4. Jalankan aplikasi pada Android Emulator dengan:
+## D. Frontend web — Pimpinan
 
-       flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+- [ ] Login dengan akun Pimpinan berhasil.
+- [ ] Role tampil sebagai Pimpinan.
+- [ ] Dashboard menampilkan jumlah judul, stok, pinjaman aktif, transaksi, dan anggota.
+- [ ] Daftar buku populer, anggota aktif, serta stok menipis tampil.
+- [ ] Pimpinan tidak melihat tombol untuk menambah, mengubah, atau menghapus buku.
 
-5. Jika HTTP diblokir pada build debug lokal, ikuti pengaturan debug-only manifest pada workflow CI. Jangan mengaktifkan cleartext untuk release/production.
+## E. Flutter Android
 
-- [ ] Aplikasi tampil tanpa crash dan dapat membuka halaman login.
-- [ ] Registrasi Member dan validasi form bekerja.
-- [ ] Login dengan kredensial valid membuka katalog.
-- [ ] Pencarian buku, tampilan stok, dan riwayat pinjaman berfungsi.
-- [ ] Member bisa meminjam dan mengembalikan buku.
-- [ ] Logout membersihkan status login yang ada di memori.
-- [ ] Akun Admin dapat menambah, mengubah, dan menghapus buku sesuai batasan API.
-- [ ] Akun Admin dapat melihat dan memperbarui status peminjaman.
+- [ ] flutter pub get selesai.
+- [ ] flutter test dan flutter analyze --no-fatal-infos selesai tanpa error.
+- [ ] Jalankan backend pada komputer host.
+- [ ] Jalankan aplikasi dengan flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api.
+- [ ] Uji registrasi/login Anggota, katalog, pencarian, peminjaman, pengembalian, dan logout.
+- [ ] Login Pustakawan menampilkan kontrol kelola katalog/sirkulasi.
+- [ ] Login Pimpinan menampilkan dashboard statistik read-only.
 
-## D. Verifikasi lintas role dan keamanan dasar
+## F. Otorisasi API
 
-- [ ] Guest tidak dapat membuka endpoint profil/peminjaman tanpa token (401).
-- [ ] Member tidak dapat menggunakan endpoint Admin (403).
-- [ ] Member tidak bisa mengembalikan pinjaman milik Member lain (respons 404).
-- [ ] Password tidak terlihat dalam response API dan tidak ditulis di log.
-- [ ] Coba stok buku habis dan pastikan backend menolak peminjaman.
-- [ ] Coba hapus buku yang punya riwayat pinjaman dan pastikan backend menolak operasi tersebut.
-- [ ] Tidak ada file .env, password, token, atau database lokal yang di-commit.
+- [ ] Guest tanpa token tidak dapat membaca profil/pinjaman (401).
+- [ ] Anggota tidak dapat memanggil endpoint Pustakawan (403).
+- [ ] Anggota tidak dapat mengembalikan pinjaman milik Anggota lain.
+- [ ] Pustakawan dapat menggunakan endpoint katalog/sirkulasi yang diizinkan.
+- [ ] Pustakawan tidak dapat membaca endpoint statistik Pimpinan.
+- [ ] Pimpinan dapat membaca /api/leadership/stats.
+- [ ] Pimpinan tidak dapat mengubah katalog (403).
+- [ ] Password tidak muncul dalam response/log; .env, token, password, dan database lokal tidak di-commit.
 
-## E. Bukti untuk laporan/presentasi
+## G. Bukti laporan
 
-- [ ] Screenshot halaman login web.
-- [ ] Screenshot katalog setelah login sebagai Member.
-- [ ] Screenshot riwayat peminjaman sebelum dan sesudah pengembalian.
-- [ ] Screenshot panel Admin dan data buku.
+- [ ] Screenshot login dan katalog Anggota.
+- [ ] Screenshot hasil peminjaman dan pengembalian.
+- [ ] Screenshot panel Pustakawan.
+- [ ] Screenshot dashboard Pimpinan.
 - [ ] Screenshot aplikasi Flutter di Android Emulator.
-- [ ] Simpan hasil dan masalah yang ditemukan dalam dokumen/catatan kelompok tanpa menampilkan credential.
-
-## Status CI
-
-Automated CI yang terakhir diperiksa berhasil untuk backend API tests, web JavaScript syntax, Flutter analysis/widget tests, dan build APK debug: [Buka workflow run](https://github.com/077Andrian/pemrograman-berbasis-platform-kelompok-5-e-library/actions/runs/40192043036).
-
-Status CI bukan pengganti checklist manual ini. Setelah semua kotak yang relevan diuji, catat tanggal, perangkat/browser yang digunakan, hasil, dan bukti yang akan diserahkan.
+- [ ] Catat tanggal, browser/perangkat, hasil aktual, serta bug yang ditemukan.
