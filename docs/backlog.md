@@ -5,7 +5,7 @@ Project yang dipilih: **Project 4 — E-Library**. Status di bawah adalah status
 | ID | Fitur / pekerjaan | Prioritas | Status | Kriteria selesai |
 |---:|---|---|---|---|
 | F01 | Login, registrasi, dan hak akses 3 role | Tinggi | Implementasi ditambahkan; perlu verifikasi lokal | Role member, librarian, leadership; uji endpoint 200/403. |
-| F02 | Pencarian judul, pengarang, ISBN | Tinggi | Sudah tersedia; diuji manual di web untuk alur katalog | Pencarian mengembalikan hasil yang sesuai. |
+| F02 | Pencarian judul, pengarang, ISBN | Tinggi | Sudah tersedia; pencarian perlu diuji spesifik | Pencarian mengembalikan hasil yang sesuai untuk judul, pengarang, dan ISBN. |
 | F03 | Detail buku dan ketersediaan stok | Tinggi | Sudah tersedia | Detail dan stok tampil benar. |
 | F04 | Peminjaman dan tanggal jatuh tempo | Tinggi | Sudah tersedia; diuji manual | Transaksi tercatat dan due date tersedia. |
 | F05 | Pengembalian dan pembaruan stok | Tinggi | Sudah tersedia; diuji manual | Status berubah dan stok bertambah tepat satu kali. |
