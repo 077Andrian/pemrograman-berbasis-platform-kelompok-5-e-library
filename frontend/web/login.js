@@ -30,6 +30,8 @@
   const adminPanel = document.getElementById("admin-panel");
   const adminBookForm = document.getElementById("admin-book-form");
   const adminLoanList = document.getElementById("admin-loan-list");
+  const leadershipPanel = document.getElementById("leadership-panel");
+  const leadershipStats = document.getElementById("leadership-stats");
   const categoryFilter = document.getElementById("category-filter");
   const newCategory = document.getElementById("new-category");
   let accessTokenInMemory = null;
@@ -172,7 +174,7 @@
         }
       });
       actions.appendChild(borrow);
-    } else {
+    } else if (currentUser.role === "librarian") {
       const edit = makeText("button", "secondary", "Ubah judul");
       edit.type = "button";
       edit.addEventListener("click", async () => {
@@ -253,17 +255,80 @@
     }
     return item;
   }
+  async function loadLeadershipDashboard() {
+    const result = await api("/leadership/stats");
+    const data = result.data || {};
+    const summary = data.summary || {};
+    leadershipStats.replaceChildren();
+
+    const grid = makeText("div", "stats-grid", "");
+    const cards = [
+      ["Judul buku", summary.totalTitles || 0],
+      ["Eksemplar tersedia", summary.availableCopies || 0],
+      ["Peminjaman aktif", summary.activeLoans || 0],
+      ["Total transaksi", summary.totalLoans || 0],
+      ["Anggota terdaftar", summary.totalMembers || 0]
+    ];
+    for (const [label, value] of cards) {
+      const card = makeText("div", "stats-card", "");
+      card.appendChild(makeText("span", "stats-label", label));
+      card.appendChild(makeText("strong", "stats-value", value));
+      grid.appendChild(card);
+    }
+    leadershipStats.appendChild(grid);
+
+    const sections = [
+      {
+        title: "Buku paling sering dipinjam",
+        rows: data.mostBorrowed || [],
+        label: (row) => (row.title || "Buku") + " — " + (row.loanCount || 0) + " kali"
+      },
+      {
+        title: "Anggota paling aktif",
+        rows: data.mostActiveMembers || [],
+        label: (row) => (row.name || row.email || "Anggota") + " — " + (row.loanCount || 0) + " pinjaman"
+      },
+      {
+        title: "Buku dengan stok menipis",
+        rows: data.lowStockBooks || [],
+        label: (row) => (row.title || "Buku") + " — stok " + (row.stock || 0)
+      }
+    ];
+    for (const section of sections) {
+      const block = makeText("section", "stats-section", "");
+      block.appendChild(makeText("h4", "", section.title));
+      if (!section.rows.length) {
+        block.appendChild(emptyState("Belum ada data."));
+      } else {
+        const list = makeText("ul", "stats-list", "");
+        for (const row of section.rows) list.appendChild(makeText("li", "", section.label(row)));
+        block.appendChild(list);
+      }
+      leadershipStats.appendChild(block);
+    }
+    leadershipPanel.hidden = false;
+  }
+
   async function loadLoans() {
-    const adminMode = currentUser.role === "admin";
-    document.querySelector(".loan-section").hidden = adminMode;
-    loanHeading.textContent = adminMode ? "Semua peminjaman" : "Peminjaman saya";
-    loanSubtitle.textContent = adminMode ? "Kelola status pinjaman anggota" : "Riwayat dan status peminjaman";
-    const result = await api(adminMode ? "/admin/loans" : "/loans/my");
+    const librarianMode = currentUser.role === "librarian";
+    const leadershipMode = currentUser.role === "leadership";
+    document.querySelector(".loan-section").hidden = librarianMode || leadershipMode;
+    leadershipPanel.hidden = !leadershipMode;
+
+    if (leadershipMode) {
+      adminPanel.hidden = true;
+      await loadLeadershipDashboard();
+      return;
+    }
+
+    loanHeading.textContent = librarianMode ? "Semua peminjaman" : "Peminjaman saya";
+    loanSubtitle.textContent = librarianMode ? "Kelola status pinjaman anggota" : "Riwayat dan status peminjaman";
+    const result = await api(librarianMode ? "/admin/loans" : "/loans/my");
     loanList.replaceChildren();
-    for (const loan of result.data || []) loanList.appendChild(loanNode(loan, adminMode));
+    for (const loan of result.data || []) loanList.appendChild(loanNode(loan, librarianMode));
     if (!result.data || result.data.length === 0) loanList.appendChild(emptyState("Belum ada peminjaman."));
     adminLoanList.replaceChildren();
-    if (adminMode) {
+    if (librarianMode) {
       for (const loan of result.data || []) adminLoanList.appendChild(loanNode(loan, true));
       adminPanel.hidden = false;
     } else {
@@ -275,7 +340,8 @@
     const profile = await api("/auth/me");
     currentUser = profile.data;
     currentUserNode.textContent = currentUser.name;
-    currentRoleNode.textContent = "Role: " + currentUser.role;
+    const roleLabels = { member: "Anggota", librarian: "Pustakawan", leadership: "Pimpinan" };
+    currentRoleNode.textContent = "Role: " + (roleLabels[currentUser.role] || currentUser.role);
     pageTitle.textContent = "Perpustakaan E-Library";
     pageIntro.textContent = "Jelajahi katalog dan kelola peminjaman dari satu tempat.";
     form.hidden = true;
@@ -295,6 +361,8 @@
     form.hidden = false;
     supportNote.hidden = false;
     libraryPanel.hidden = true;
+    adminPanel.hidden = true;
+    leadershipPanel.hidden = true;
     pageTitle.textContent = "Selamat datang kembali";
     pageIntro.textContent = "Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.";
     showCatalogMessage("");
