@@ -2,7 +2,7 @@
 
 **Proyek:** E-Library — Kelompok 5  
 **Versi:** 1.0  
-**Status:** API autentikasi, UI web/Flutter, katalog, dan alur peminjaman terlindungi sudah diimplementasikan. CI terakhir yang diperiksa lulus untuk backend, sintaks JavaScript, analisis/widget test Flutter, dan build APK debug. Smoke test manual masih diperlukan; lihat [checklist QA](manual-smoke-test.md).
+**Status:** API autentikasi, UI web/Flutter, katalog, alur peminjaman terlindungi, dan panel statistik Pimpinan sudah ditambahkan ke repository. Implementasi role Anggota, Pustakawan, dan Pimpinan perlu diverifikasi kembali setelah perubahan ditarik ke komputer; lihat [checklist QA](manual-smoke-test.md).
 
 ## 1. Tujuan
 
@@ -98,7 +98,7 @@ Backend saat ini menerapkan bentuk respons sukses di atas. Jika bentuk respons b
 - Klien hanya menganggap login berhasil jika respons memuat accessToken yang tidak kosong.
 - Token prototipe ditahan di memori aplikasi/halaman; tidak disimpan ke localStorage, sessionStorage, atau file.
 - Password dibersihkan dari field setelah login berhasil dan tidak ditulis ke log.
-- Kedua klien memeriksa profil melalui GET /api/auth/me sebelum menampilkan area perpustakaan; token disimpan sementara di memori selama halaman/aplikasi berjalan. Refresh halaman web atau memulai ulang aplikasi mobile mengharuskan login ulang. Refresh token, pencabutan token server-side, dan manajemen sesi produksi belum dibuat.
+- Kedua klien memeriksa profil melalui GET /api/auth/me sebelum menampilkan area yang sesuai role; token disimpan sementara di memori selama halaman/aplikasi berjalan. Refresh halaman web atau memulai ulang aplikasi mobile mengharuskan login ulang. Refresh token, pencabutan token server-side, dan manajemen sesi produksi belum dibuat.
 
 ## 6. Status pengujian
 
@@ -108,10 +108,10 @@ Backend saat ini menerapkan bentuk respons sukses di atas. Jika bentuk respons b
 - [x] Registrasi Member tersedia di web dan Flutter, memakai endpoint yang sama dengan backend.
 - [x] Kedua klien memakai POST /api/auth/login dan mengharapkan accessToken serta data pengguna.
 - [x] Endpoint profil terlindungi dipakai sebagai guard sebelum menampilkan area login sukses.
-- [x] Area katalog/peminjaman Member dan panel kelola buku Admin tersedia pada web dan Flutter.
+- [x] Area katalog/peminjaman Anggota, panel kelola katalog/sirkulasi Pustakawan, dan dashboard statistik Pimpinan tersedia pada web dan Flutter pada source terbaru.
 - [x] APK debug berhasil dibangun oleh GitHub Actions CI.
-- [ ] Uji manual pada browser dan Android Emulator/perangkat — masih perlu dilakukan oleh tim sebelum presentasi.
-- [ ] Login sukses dan login gagal telah diuji secara manual di browser/emulator — belum diverifikasi.
+- [ ] Uji manual pada browser dan Android Emulator/perangkat untuk ketiga role — masih perlu dilakukan oleh tim sebelum presentasi.
+- [ ] Login sukses dan login gagal telah diuji secara manual di browser/emulator — perlu diuji ulang setelah perubahan role.
 - [ ] CORS dan integrasi visual lintas perangkat telah diuji manual end-to-end — belum dilakukan.
 
 ## 7. Kesimpulan
