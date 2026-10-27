@@ -1,6 +1,6 @@
 # Frontend Mobile — E-Library
 
-Prototipe mobile menggunakan Flutter dan endpoint autentikasi yang sama dengan frontend web. Pengguna dapat membuat akun Member, login, melihat katalog dan mengelola pinjaman.
+Prototipe mobile menggunakan Flutter dan endpoint autentikasi yang sama dengan frontend web. Anggota dapat registrasi/login, melihat katalog, dan mengelola pinjaman. Pustakawan mengelola katalog serta sirkulasi, sedangkan Pimpinan membaca dashboard statistik.
 
 ## Menyiapkan platform Android
 
@@ -20,7 +20,7 @@ Jalankan backend pada komputer host, kemudian:
 
 10.0.2.2 adalah alamat untuk mengakses server komputer host dari Android Emulator. Untuk perangkat fisik, ganti dengan alamat IP LAN komputer dan pastikan firewall mengizinkan koneksi. Jika Android menolak HTTP saat debug lokal, pada android/app/src/debug/AndroidManifest.xml tambahkan atribut android:usesCleartextTraffic="true" pada elemen application; jangan aktifkan izin ini pada manifest utama atau build produksi. HTTPS wajib digunakan saat deployment produksi.
 
-Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi lalu menampilkan katalog. Member bisa mencari, meminjam, dan mengembalikan bukunya. Admin dapat mengelola buku dan status pengembalian. Token hanya disimpan di memori aplikasi; keluar akan menghapus token dari state lokal.
+Sesudah login berhasil, aplikasi mengambil profil melalui endpoint terlindungi. Role member melihat katalog dan mengelola pinjaman sendiri; role librarian mengelola buku dan sirkulasi; role leadership melihat statistik koleksi dan sirkulasi melalui GET /api/leadership/stats. Token hanya disimpan di memori aplikasi; keluar akan menghapus token dari state lokal.
 
 ## Build dan test
 
