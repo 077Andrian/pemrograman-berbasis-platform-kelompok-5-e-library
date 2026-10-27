@@ -33,6 +33,6 @@ const id = crypto.randomUUID();
 const passwordHash = bcrypt.hashSync(password, 12);
 db.prepare(
   'INSERT INTO users (id, name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-).run(id, name, email, passwordHash, 'admin', new Date().toISOString());
-console.log('Akun Admin berhasil dibuat untuk ' + email + '. Password tidak ditampilkan.');
+).run(id, name, email, passwordHash, 'librarian', new Date().toISOString());
+console.log('Akun Pustakawan berhasil dibuat untuk ' + email + '. Password tidak ditampilkan.');
 db.close();
