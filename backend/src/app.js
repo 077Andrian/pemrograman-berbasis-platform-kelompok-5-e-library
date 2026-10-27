@@ -339,7 +339,7 @@ app.post('/api/loans/:id/return', authenticate, authorize('member'), (req, res) 
   res.json({ data: doReturnLoan(Number(req.params.id), req.user.id) });
 });
 
-app.post('/api/admin/books', authenticate, authorize('admin'), (req, res) => {
+app.post('/api/admin/books', authenticate, authorize('librarian'), (req, res) => {
   try {
     res.status(201).json({ data: adminCreateBook(req.body || {}) });
   } catch (error) {
@@ -347,7 +347,7 @@ app.post('/api/admin/books', authenticate, authorize('admin'), (req, res) => {
   }
 });
 
-app.patch('/api/admin/books/:id', authenticate, authorize('admin'), (req, res) => {
+app.patch('/api/admin/books/:id', authenticate, authorize('librarian'), (req, res) => {
   if (!positiveInt(req.params.id)) throw new ApiError(400, 'INVALID_ID', 'ID buku tidak valid.');
   if (!getBook(Number(req.params.id))) throw new ApiError(404, 'NOT_FOUND', 'Buku tidak ditemukan.');
   const body = req.body || {};
@@ -363,7 +363,7 @@ app.patch('/api/admin/books/:id', authenticate, authorize('admin'), (req, res) =
   res.json({ data: parseBook(getBook(Number(req.params.id))) });
 });
 
-app.delete('/api/admin/books/:id', authenticate, authorize('admin'), (req, res) => {
+app.delete('/api/admin/books/:id', authenticate, authorize('librarian'), (req, res) => {
   if (!positiveInt(req.params.id)) throw new ApiError(400, 'INVALID_ID', 'ID buku tidak valid.');
   const id = Number(req.params.id);
   if (!getBook(id)) throw new ApiError(404, 'NOT_FOUND', 'Buku tidak ditemukan.');
@@ -377,7 +377,7 @@ function slugify(value) {
   return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
-app.post('/api/admin/categories', authenticate, authorize('admin'), (req, res) => {
+app.post('/api/admin/categories', authenticate, authorize('librarian'), (req, res) => {
   const body = req.body || {};
   requireFields(body, ['name']);
   const name = body.name.trim();
@@ -392,7 +392,7 @@ app.post('/api/admin/categories', authenticate, authorize('admin'), (req, res) =
   }
 });
 
-app.patch('/api/admin/categories/:id', authenticate, authorize('admin'), (req, res) => {
+app.patch('/api/admin/categories/:id', authenticate, authorize('librarian'), (req, res) => {
   if (!positiveInt(req.params.id)) throw new ApiError(400, 'INVALID_ID', 'ID kategori tidak valid.');
   const id = Number(req.params.id);
   const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
@@ -411,7 +411,7 @@ app.patch('/api/admin/categories/:id', authenticate, authorize('admin'), (req, r
   res.json({ data: { id: row.id, name: row.name, slug: row.slug, createdAt: row.created_at } });
 });
 
-app.delete('/api/admin/categories/:id', authenticate, authorize('admin'), (req, res) => {
+app.delete('/api/admin/categories/:id', authenticate, authorize('librarian'), (req, res) => {
   if (!positiveInt(req.params.id)) throw new ApiError(400, 'INVALID_ID', 'ID kategori tidak valid.');
   const id = Number(req.params.id);
   if (!db.prepare('SELECT id FROM categories WHERE id = ?').get(id)) throw new ApiError(404, 'NOT_FOUND', 'Kategori tidak ditemukan.');
@@ -421,17 +421,52 @@ app.delete('/api/admin/categories/:id', authenticate, authorize('admin'), (req, 
   res.status(204).end();
 });
 
-app.get('/api/admin/loans', authenticate, authorize('admin'), (req, res) => {
+app.get('/api/admin/loans', authenticate, authorize('librarian'), (req, res) => {
   const rows = db.prepare(loanQuery() + 'ORDER BY l.loaned_at DESC, l.id DESC').all();
   res.json({ data: rows.map(parseLoan) });
 });
 
-app.patch('/api/admin/loans/:id/status', authenticate, authorize('admin'), (req, res) => {
+app.patch('/api/admin/loans/:id/status', authenticate, authorize('librarian'), (req, res) => {
   if (!positiveInt(req.params.id)) throw new ApiError(400, 'INVALID_ID', 'ID peminjaman tidak valid.');
   if (!req.body || req.body.status !== 'returned') {
     throw new ApiError(422, 'VALIDATION_ERROR', 'Status yang dapat diatur melalui endpoint ini adalah returned.');
   }
   res.json({ data: doReturnLoan(Number(req.params.id), null) });
+});
+
+app.get('/api/leadership/stats', authenticate, authorize('leadership'), (req, res) => {
+  const totalTitles = db.prepare('SELECT COUNT(*) AS total FROM books').get().total;
+  const availableCopies = db.prepare('SELECT COALESCE(SUM(stock), 0) AS total FROM books').get().total;
+  const totalLoans = db.prepare('SELECT COUNT(*) AS total FROM loans').get().total;
+  const activeLoans = db.prepare("SELECT COUNT(*) AS total FROM loans WHERE status = 'borrowed'").get().total;
+  const totalMembers = db.prepare("SELECT COUNT(*) AS total FROM users WHERE role = 'member'").get().total;
+
+  const mostBorrowed = db.prepare(
+    "SELECT b.id, b.title, b.author, COUNT(l.id) AS loanCount " +
+    "FROM books b LEFT JOIN loans l ON l.book_id = b.id " +
+    "GROUP BY b.id ORDER BY loanCount DESC, b.title COLLATE NOCASE ASC LIMIT 5"
+  ).all();
+
+  const mostActiveMembers = db.prepare(
+    "SELECT u.id, u.name, u.email, COUNT(l.id) AS loanCount " +
+    "FROM users u LEFT JOIN loans l ON l.user_id = u.id " +
+    "WHERE u.role = 'member' GROUP BY u.id " +
+    "ORDER BY loanCount DESC, u.name COLLATE NOCASE ASC LIMIT 5"
+  ).all();
+
+  const lowStockBooks = db.prepare(
+    "SELECT id, title, author, stock FROM books WHERE stock <= 1 " +
+    "ORDER BY stock ASC, title COLLATE NOCASE ASC LIMIT 5"
+  ).all();
+
+  res.json({
+    data: {
+      summary: { totalTitles, availableCopies, totalLoans, activeLoans, totalMembers },
+      mostBorrowed,
+      mostActiveMembers,
+      lowStockBooks
+    }
+  });
 });
 
 app.use((req, res, next) => next(new ApiError(404, 'NOT_FOUND', 'Endpoint tidak ditemukan.')));
