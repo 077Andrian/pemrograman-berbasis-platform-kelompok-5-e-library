@@ -1,6 +1,6 @@
 # Backend API — E-Library Kelompok 5
 
-Backend memakai Node.js 24+, Express, SQLite, bcryptjs untuk hashing kata sandi, dan JWT untuk autentikasi.
+Backend memakai Node.js 24+, Express, SQLite, bcryptjs untuk hashing kata sandi, dan JWT.
 
 ## Instalasi dan konfigurasi
 
@@ -9,23 +9,26 @@ Masuk ke folder backend:
     npm install
     copy .env.example .env
 
-Di PowerShell perintah salin bisa menggunakan Copy-Item .env.example .env. Buka .env dan ubah JWT_SECRET menjadi string acak minimal 32 karakter. Jangan commit .env.
+Di PowerShell, gunakan Copy-Item .env.example .env. Buka .env dan atur JWT_SECRET dengan secret acak minimal 32 karakter. Jangan commit .env.
 
 Jalankan server:
 
     npm run dev
 
-Default API berjalan di http://localhost:3000. Database SQLite dibuat otomatis di backend/data/elibrary.sqlite. Kategori dan enam buku contoh dibuat saat startup awal.
+Default API berjalan di http://localhost:3000. Database SQLite dibuat otomatis di backend/data/elibrary.sqlite (relatif ke direktori kerja saat perintah dijalankan). Kategori dan enam buku contoh dibuat saat startup awal.
 
 Health check: GET /api/health
 
-## Membuat akun Admin
+## Membuat akun role
 
-Gunakan terminal pada folder backend, ganti email/password/nama dengan milik kelompok:
+Registrasi melalui aplikasi selalu membuat role member. Untuk akun Pustakawan atau Pimpinan, jalankan dari folder backend:
 
-    npm run admin:create -- admin@elibrary.local "PasswordKuatYangBerbeda123!" "Admin E-Library"
+    npm run user:create -- pustakawan@elibrary.local "PasswordKuat123456!" "Pustakawan E-Library" librarian
+    npm run user:create -- pimpinan@elibrary.local "PasswordKuat123456!" "Pimpinan E-Library" leadership
 
-Password Admin harus terdiri dari 12–72 karakter. Skrip tidak akan menaikkan role akun yang sudah ada. Jangan gunakan password contoh untuk data penting. Registrasi API biasa selalu membuat role member.
+Password role khusus harus terdiri dari 12–72 karakter. Jangan menaruh credential dalam repository, screenshot, atau laporan. Perintah lama npm run admin:create -- email password "Nama" tetap tersedia untuk menyiapkan akun Pustakawan pada database lokal.
+
+Saat server pertama kali dijalankan setelah pembaruan role, database lokal lama memigrasikan role admin menjadi librarian. Migration mempertahankan data akun dan peminjaman.
 
 ## Endpoint publik
 
@@ -36,7 +39,7 @@ Password Admin harus terdiri dari 12–72 karakter. Skrip tidak akan menaikkan r
 - POST /api/auth/register — JSON: name, email, password
 - POST /api/auth/login — JSON: email, password
 
-## Endpoint Member
+## Endpoint Anggota
 
 Kirim header Authorization: Bearer <accessToken>.
 
@@ -45,11 +48,11 @@ Kirim header Authorization: Bearer <accessToken>.
 - GET /api/loans/my
 - POST /api/loans/:id/return
 
-Identitas peminjam diambil dari JWT terverifikasi; userId dari request body tidak dipercaya.
+Identitas peminjam berasal dari token terverifikasi. Anggota hanya dapat mengelola pinjamannya sendiri.
 
-## Endpoint Admin
+## Endpoint Pustakawan
 
-Semua endpoint berikut memerlukan token Admin:
+Path /api/admin/... dipertahankan untuk kompatibilitas, tetapi endpoint ini hanya menerima token role librarian.
 
 - POST /api/admin/books
 - PATCH /api/admin/books/:id
@@ -58,32 +61,24 @@ Semua endpoint berikut memerlukan token Admin:
 - PATCH /api/admin/categories/:id
 - DELETE /api/admin/categories/:id
 - GET /api/admin/loans
-- PATCH /api/admin/loans/:id/status — endpoint saat ini menerima status returned
+- PATCH /api/admin/loans/:id/status — status yang diterima saat ini adalah returned
 
-Contoh body buku:
+## Endpoint Pimpinan
 
-    {
-      "title": "Belajar API",
-      "author": "Andi Pratama",
-      "isbn": "9786021234567",
-      "description": "Panduan membangun REST API",
-      "categoryId": 2,
-      "stock": 4,
-      "coverUrl": null
-    }
+- GET /api/leadership/stats — memerlukan token role leadership, mengembalikan ringkasan koleksi dan sirkulasi, buku yang sering dipinjam, anggota aktif, serta stok menipis.
 
 ## Format respons
 
 Data umum dikirim sebagai { "data": ... }; login mengembalikan accessToken, tokenType, expiresIn, dan user. Error memakai { "error": { "code": "...", "message": "..." } }.
 
-Kode status utama: 400 query/ID tidak valid, 401 token atau kredensial salah, 403 role tidak diizinkan, 404 tidak ditemukan, 409 konflik, 422 validasi, 500 kesalahan internal.
+Kode status utama: 400 untuk query/ID tidak valid, 401 token/kredensial tidak valid, 403 role tidak diizinkan, 404 tidak ditemukan, 409 konflik, 422 validasi, 500 kesalahan internal.
 
 ## Menjalankan test
 
     npm test
 
-Test menggunakan database SQLite sementara di memori.
+Test memakai database SQLite sementara di memori. Setelah perubahan role, jalankan test ini dan periksa output sebelum menyatakan API lulus.
 
-## Catatan batasan
+## Batasan yang masih direncanakan
 
-Sebelum deployment nyata, evaluasi backup database, rate limiting percobaan login, refresh/revocation token, monitoring, HTTPS, dan secret produksi.
+Perpanjangan masa pinjam, antrean reservasi, perhitungan denda otomatis, penyimpanan/unduhan e-book, rate limiting percobaan login, refresh/revocation token, monitoring, backup, dan deployment HTTPS masih perlu pekerjaan lanjutan.
