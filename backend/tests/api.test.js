@@ -15,6 +15,7 @@ const { db } = require('../src/db');
 let memberToken = '';
 let secondMemberToken = '';
 let adminToken = '';
+let leadershipToken = '';
 let adminId = '';
 let bookId = 0;
 let loanId = 0;
@@ -27,12 +28,25 @@ before(async () => {
   const passwordHash = await bcrypt.hash(adminPassword, 4);
   db.prepare(
     'INSERT INTO users (id, name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(adminId, 'Admin Test', adminEmail, passwordHash, 'admin', new Date().toISOString());
+  ).run(adminId, 'Admin Test', adminEmail, passwordHash, 'librarian', new Date().toISOString());
 
   const login = await request(app).post('/api/auth/login')
     .send({ email: adminEmail, password: adminPassword });
   assert.equal(login.status, 200);
   adminToken = login.body.accessToken;
+
+  const leadershipEmail = 'leadership-test@elibrary.local';
+  const leadershipPassword = 'LeadershipTestPassword123!';
+  const leadershipId = crypto.randomUUID();
+  const leadershipHash = await bcrypt.hash(leadershipPassword, 4);
+  db.prepare(
+    'INSERT INTO users (id, name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(leadershipId, 'Pimpinan Test', leadershipEmail, leadershipHash, 'leadership', new Date().toISOString());
+
+  const leadershipLogin = await request(app).post('/api/auth/login')
+    .send({ email: leadershipEmail, password: leadershipPassword });
+  assert.equal(leadershipLogin.status, 200);
+  leadershipToken = leadershipLogin.body.accessToken;
 });
 
 after(() => {
@@ -107,7 +121,7 @@ test('authenticated Member can read their own profile', async () => {
   assert.equal(response.body.data.role, 'member');
 });
 
-test('Member cannot access Admin-only book creation', async () => {
+test('Member cannot access Librarian-only book creation', async () => {
   const response = await request(app).post('/api/admin/books')
     .set('Authorization', 'Bearer ' + memberToken)
     .send({ title: 'No Access', author: 'Member', stock: 1 });
@@ -155,7 +169,7 @@ test('Member can borrow a book and return it; another Member cannot return it', 
   assert.equal(book.body.data.stock, originalStock);
 });
 
-test('Admin can create, update, and delete a book', async () => {
+test('Librarian can create, update, and delete a book', async () => {
   const categories = await request(app).get('/api/categories');
   const categoryId = categories.body.data[0].id;
   const created = await request(app).post('/api/admin/books')
@@ -182,7 +196,7 @@ test('Admin can create, update, and delete a book', async () => {
   assert.equal(deleted.status, 204);
 });
 
-test('Admin can inspect all loans and add a category', async () => {
+test('Librarian can inspect all loans and add a category', async () => {
   const loans = await request(app).get('/api/admin/loans')
     .set('Authorization', 'Bearer ' + adminToken);
   assert.equal(loans.status, 200);
@@ -193,6 +207,23 @@ test('Admin can inspect all loans and add a category', async () => {
     .send({ name: 'Kategori Tes ' + Date.now() });
   assert.equal(created.status, 201);
   assert.ok(created.body.data.slug.startsWith('kategori-tes-'));
+});
+
+
+test('Leadership can read aggregated statistics but cannot manage the catalogue', async () => {
+  const stats = await request(app).get('/api/leadership/stats')
+    .set('Authorization', 'Bearer ' + leadershipToken);
+  assert.equal(stats.status, 200);
+  assert.equal(typeof stats.body.data.summary.totalTitles, 'number');
+  assert.equal(typeof stats.body.data.summary.totalMembers, 'number');
+  assert.ok(Array.isArray(stats.body.data.mostBorrowed));
+  assert.ok(Array.isArray(stats.body.data.mostActiveMembers));
+
+  const forbidden = await request(app).post('/api/admin/books')
+    .set('Authorization', 'Bearer ' + leadershipToken)
+    .send({ title: 'No Access', author: 'Pimpinan', stock: 1 });
+  assert.equal(forbidden.status, 403);
+  assert.equal(forbidden.body.error.code, 'FORBIDDEN');
 });
 
 test('validation errors use the shared response envelope', async () => {
