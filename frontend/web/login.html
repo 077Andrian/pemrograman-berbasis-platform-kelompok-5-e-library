@@ -95,7 +95,7 @@
           </section>
 
           <section id="admin-panel" class="admin-panel" hidden>
-            <div class="section-heading"><div><h3>Kelola katalog</h3><p>Hanya akun Admin yang dapat mengubah data buku.</p></div></div>
+            <div class="section-heading"><div><h3>Kelola katalog</h3><p>Hanya akun Pustakawan yang dapat mengubah data buku.</p></div></div>
             <form id="admin-book-form" class="admin-form">
               <div class="field"><label for="new-title">Judul buku</label><input id="new-title" required maxlength="200"></div>
               <div class="field"><label for="new-author">Penulis</label><input id="new-author" required maxlength="160"></div>
@@ -106,6 +106,13 @@
             </form>
             <div class="section-heading"><div><h3>Semua peminjaman</h3></div></div>
             <div id="admin-loan-list" class="loan-list"></div>
+          </section>
+
+          <section id="leadership-panel" class="admin-panel" hidden>
+            <div class="section-heading">
+              <div><h3>Dashboard Pimpinan</h3><p>Ringkasan koleksi, sirkulasi, dan kebutuhan pengadaan.</p></div>
+            </div>
+            <div id="leadership-stats"></div>
           </section>
         </section>
       </div>
