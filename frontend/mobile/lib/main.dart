@@ -968,55 +968,98 @@ class _LoginPageState extends State<LoginPage> {
               final id = (book['id'] as num?)?.toInt() ?? 0;
               final stock = (book['stock'] as num?)?.toInt() ?? 0;
               return Card(
-                margin: const EdgeInsets.only(bottom: 10),
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(15),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        book['title']?.toString() ?? 'Judul buku',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF1E3A5F),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('Penulis: ' + (book['author']?.toString() ?? '-')),
-                      const SizedBox(height: 6),
-                      Text(
-                        book['description']?.toString() ?? '',
-                        style: const TextStyle(color: Color(0xFF64748B)),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        (book['categoryName']?.toString() ?? 'Tanpa kategori') +
-                            ' · Stok: ' + stock.toString(),
-                      ),
-                      const SizedBox(height: 10),
-                      if (isMember)
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: () => _borrowBook(id),
-                            child: Text(stock > 0 ? 'Pinjam buku' : 'Reservasi antrean'),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 98,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF153B55), Color(0xFF0E827A)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(11),
+                              boxShadow: const [
+                                BoxShadow(color: Color(0x1D153B55), blurRadius: 12, offset: Offset(0, 5)),
+                              ],
+                            ),
+                            child: Stack(
+                              children: [
+                                Positioned(right: -14, bottom: -18, child: Icon(Icons.menu_book_rounded, size: 76, color: Colors.white.withValues(alpha: .10))),
+                                const Center(child: Icon(Icons.auto_stories_rounded, color: Color(0xFFD5F5EC), size: 30)),
+                                const Positioned(left: 9, bottom: 9, child: Text('E-LIBRARY', style: TextStyle(color: Colors.white, fontSize: 7, letterSpacing: 1, fontWeight: FontWeight.w900))),
+                              ],
+                            ),
                           ),
-                        )
-                      else if (isLibrarian)
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            OutlinedButton(
-                              onPressed: () => _editBook(book),
-                              child: const Text('Ubah judul'),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  book['title']?.toString() ?? 'Judul buku',
+                                  style: const TextStyle(fontSize: 16, height: 1.25, color: Color(0xFF14283D), fontWeight: FontWeight.w900, letterSpacing: -.25),
+                                ),
+                                const SizedBox(height: 5),
+                                Text('Oleh ' + (book['author']?.toString() ?? '-'), style: const TextStyle(color: Color(0xFF718394), fontSize: 12)),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                  decoration: BoxDecoration(color: const Color(0xFFEAF7F3), borderRadius: BorderRadius.circular(30)),
+                                  child: Text(
+                                    (book['categoryName']?.toString() ?? 'Umum') + ' · Stok ' + stock.toString(),
+                                    style: const TextStyle(color: Color(0xFF087F75), fontSize: 10, fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                              ],
                             ),
-                            OutlinedButton(
-                              onPressed: () => _deleteBook(id),
-                              child: const Text('Hapus'),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      if ((book['description']?.toString() ?? '').isNotEmpty) ...[
+                        const SizedBox(height: 14),
+                        Text(
+                          book['description']?.toString() ?? '',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xFF718394), height: 1.5, fontSize: 12),
                         ),
+                      ],
+                      if (isMember || isLibrarian) ...[
+                        const SizedBox(height: 14),
+                        if (isMember)
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: () => _borrowBook(id),
+                              icon: Icon(stock > 0 ? Icons.bookmark_add_outlined : Icons.notifications_active_outlined, size: 18),
+                              label: Text(stock > 0 ? 'Pinjam buku' : 'Reservasi antrean'),
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () => _editBook(book),
+                                icon: const Icon(Icons.edit_outlined, size: 17),
+                                label: const Text('Ubah'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _deleteBook(id),
+                                icon: const Icon(Icons.delete_outline, size: 17),
+                                label: const Text('Hapus'),
+                              ),
+                            ],
+                          ),
+                      ],
                     ],
                   ),
                 ),
