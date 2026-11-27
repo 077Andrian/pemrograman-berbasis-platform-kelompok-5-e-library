@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const { db } = require('./db');
 const { ApiError, signAccessToken, authenticate, authorize } = require('./auth');
+const { router: advancedRouter, dispatchReservationsForBook, fineForLoan } = require('./advanced');
 
 const app = express();
 app.disable('x-powered-by');
@@ -61,7 +62,9 @@ function parseLoan(row) {
     status: row.status,
     loanedAt: row.loaned_at,
     dueDate: row.due_date,
-    returnedAt: row.returned_at
+    returnedAt: row.returned_at,
+    renewalCount: row.renewal_count || 0,
+    ...fineForLoan(row)
   };
 }
 
@@ -192,7 +195,9 @@ function doReturnLoan(loanId, expectedUserId) {
       .run(nowIso(), loan.book_id);
     return getLoan(loanId);
   });
-  return parseLoan(txn());
+  const returned = txn();
+  dispatchReservationsForBook(returned.book_id);
+  return parseLoan(getLoan(loanId));
 }
 
 app.get('/api/health', (req, res) => {
@@ -468,6 +473,8 @@ app.get('/api/leadership/stats', authenticate, authorize('leadership'), (req, re
     }
   });
 });
+
+app.use(advancedRouter);
 
 app.use((req, res, next) => next(new ApiError(404, 'NOT_FOUND', 'Endpoint tidak ditemukan.')));
 
