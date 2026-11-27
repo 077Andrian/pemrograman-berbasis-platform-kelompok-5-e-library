@@ -25,27 +25,79 @@ class ELibraryApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF3F7F8),
         colorScheme: ColorScheme.fromSeed(
           seedColor: primary,
           primary: primary,
           secondary: accent,
-          surface: const Color(0xFFF8FAFC),
+          surface: const Color(0xFFFFFFFF),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Color(0xFF14283D),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF14283D),
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 12),
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0xFFE2EAED)),
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          hintStyle: const TextStyle(color: Color(0xFF9AAAB5), fontSize: 14),
+          prefixIconColor: const Color(0xFF718797),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFDCE6E9)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFDCE6E9)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: accent, width: 2),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: accent, width: 1.7),
           ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            minimumSize: const Size(0, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: primary,
+            side: const BorderSide(color: Color(0xFFDCE6E9)),
+            minimumSize: const Size(0, 42),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF173D59),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       home: const LoginPage(),
@@ -371,9 +423,10 @@ class _LoginPageState extends State<LoginPage> {
         _ebooks = rawEbooks is List
             ? rawEbooks.whereType<Map<String, dynamic>>().toList()
             : <Map<String, dynamic>>[];
-        _fines = finesResponse?['data'] is List
-            ? Map<String, dynamic>.from(finesResponse!)
-            : (finesResponse == null ? <String, dynamic>{} : Map<String, dynamic>.from(finesResponse));
+        final rawFines = finesResponse?['data'];
+        _fines = rawFines is Map
+            ? Map<String, dynamic>.from(rawFines)
+            : <String, dynamic>{};
       });
     } on Exception catch (error) {
       if (mounted) {
@@ -760,7 +813,26 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('E-Library'),
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF173D59), Color(0xFF0E9F91)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: const Text('E', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 19)),
+            ),
+            const SizedBox(width: 10),
+            const Text('E-Library'),
+          ],
+        ),
         actions: [
           if (isLibrarian) ...[
             IconButton(tooltip: 'Tambah buku', onPressed: _showAddBookDialog, icon: const Icon(Icons.add)),
@@ -778,22 +850,51 @@ class _LoginPageState extends State<LoginPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              'Halo, ' + username,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E3A5F),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF102B43), Color(0xFF17615F)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x1D102B43), blurRadius: 22, offset: Offset(0, 10)),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isLibrarian
-                  ? 'Pustakawan · kelola katalog dan sirkulasi'
-                  : isLeadership
-                      ? 'Pimpinan · ringkasan statistik perpustakaan'
-                      : 'Anggota · temukan buku dan kelola pinjaman',
-              style: const TextStyle(color: Color(0xFF64748B)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .13),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.white.withValues(alpha: .18)),
+                    ),
+                    child: Text(
+                      isLibrarian ? 'RUANG PUSTAKAWAN' : isLeadership ? 'DASHBOARD PIMPINAN' : 'RUANG ANGGOTA',
+                      style: const TextStyle(color: Color(0xFFB8F0E4), fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    'Halo, ' + username,
+                    style: const TextStyle(fontSize: 25, height: 1.1, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -.5),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isLibrarian
+                        ? 'Kelola katalog dan pantau sirkulasi perpustakaan.'
+                        : isLeadership
+                            ? 'Pantau koleksi, aktivitas, dan performa perpustakaan.'
+                            : 'Temukan bacaan baru dan kelola perjalanan membacamu.',
+                    style: const TextStyle(color: Color(0xFFD4E8E7), height: 1.5, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 18),
             TextField(
