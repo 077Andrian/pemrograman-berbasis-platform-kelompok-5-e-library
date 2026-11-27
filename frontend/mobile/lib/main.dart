@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 const String apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
@@ -77,6 +78,9 @@ class _LoginPageState extends State<LoginPage> {
   Map<String, dynamic>? _currentUser;
   List<Map<String, dynamic>> _books = [];
   List<Map<String, dynamic>> _loans = [];
+  List<Map<String, dynamic>> _reservations = [];
+  List<Map<String, dynamic>> _ebooks = [];
+  Map<String, dynamic> _fines = <String, dynamic>{};
   Map<String, dynamic> _leadershipStats = <String, dynamic>{};
 
   @override
@@ -328,6 +332,9 @@ class _LoginPageState extends State<LoginPage> {
       final role = current['role']?.toString() ?? 'member';
       Map<String, dynamic>? loansResponse;
       Map<String, dynamic>? leadershipResponse;
+      Map<String, dynamic>? reservationsResponse;
+      Map<String, dynamic>? finesResponse;
+      final ebooksResponse = await _apiRequest('GET', '/ebooks');
       if (role == 'leadership') {
         leadershipResponse = await _apiRequest('GET', '/leadership/stats');
       } else {
@@ -335,10 +342,16 @@ class _LoginPageState extends State<LoginPage> {
           'GET',
           role == 'librarian' ? '/admin/loans' : '/loans/my',
         );
+        if (role == 'member') {
+          reservationsResponse = await _apiRequest('GET', '/reservations/my');
+          finesResponse = await _apiRequest('GET', '/fines/my');
+        }
       }
       final rawBooks = booksResponse['data'];
       final rawLoans = loansResponse?['data'];
       final rawLeadership = leadershipResponse?['data'];
+      final rawReservations = reservationsResponse?['data'];
+      final rawEbooks = ebooksResponse['data'];
 
       if (!mounted) return;
       setState(() {
@@ -352,6 +365,15 @@ class _LoginPageState extends State<LoginPage> {
         _leadershipStats = rawLeadership is Map
             ? Map<String, dynamic>.from(rawLeadership)
             : <String, dynamic>{};
+        _reservations = rawReservations is List
+            ? rawReservations.whereType<Map<String, dynamic>>().toList()
+            : <Map<String, dynamic>>[];
+        _ebooks = rawEbooks is List
+            ? rawEbooks.whereType<Map<String, dynamic>>().toList()
+            : <Map<String, dynamic>>[];
+        _fines = finesResponse?['data'] is List
+            ? Map<String, dynamic>.from(finesResponse!)
+            : (finesResponse == null ? <String, dynamic>{} : Map<String, dynamic>.from(finesResponse));
       });
     } on Exception catch (error) {
       if (mounted) {
@@ -372,12 +394,86 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _borrowBook(int bookId) async {
     try {
-      await _apiRequest('POST', '/loans', body: {'bookId': bookId});
-      _notify('Buku berhasil dipinjam.');
+      final book = _books.firstWhere((item) => item['id'] == bookId);
+      if (((book['stock'] as num?)?.toInt() ?? 0) > 0) {
+        await _apiRequest('POST', '/loans', body: {'bookId': bookId});
+        _notify('Buku berhasil dipinjam.');
+      } else {
+        await _apiRequest('POST', '/reservations', body: {'bookId': bookId});
+        _notify('Reservasi berhasil masuk antrean.');
+      }
       await _refreshLibrary();
     } on Exception catch (error) {
       _notify(error.toString().replaceFirst('Exception: ', ''));
     }
+  }
+
+  Future<void> _renewLoan(int loanId) async {
+    try {
+      await _apiRequest('POST', '/loans/' + loanId.toString() + '/renew');
+      _notify('Masa peminjaman berhasil diperpanjang.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _claimReservation(int reservationId) async {
+    try {
+      await _apiRequest('POST', '/reservations/' + reservationId.toString() + '/claim');
+      _notify('Reservasi berhasil menjadi peminjaman.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _cancelReservation(int reservationId) async {
+    try {
+      await _apiRequest('DELETE', '/reservations/' + reservationId.toString());
+      _notify('Reservasi dibatalkan.');
+      await _refreshLibrary();
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _openEbook(Map<String, dynamic> ebook) async {
+    try {
+      final result = await _apiRequest('GET', '/ebooks/' + ebook['id'].toString() + '/download');
+      final url = Uri.parse(result['data']['downloadUrl'].toString());
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        _notify('Tautan e-book tidak dapat dibuka.');
+      }
+    } on Exception catch (error) {
+      _notify(error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _showAddEbookDialog() async {
+    final title = TextEditingController();
+    final author = TextEditingController();
+    final url = TextEditingController();
+    final description = TextEditingController();
+    final saved = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      title: const Text('Tambah e-book'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: title, decoration: const InputDecoration(labelText: 'Judul')),
+        TextField(controller: author, decoration: const InputDecoration(labelText: 'Penulis')),
+        TextField(controller: url, decoration: const InputDecoration(labelText: 'URL HTTPS file')),
+        TextField(controller: description, decoration: const InputDecoration(labelText: 'Deskripsi')),
+      ])),
+      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Batal')),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Simpan'))],
+    ));
+    if (saved == true) {
+      try {
+        await _apiRequest('POST', '/admin/ebooks', body: {'title': title.text.trim(), 'author': author.text.trim(), 'fileUrl': url.text.trim(), 'description': description.text.trim()});
+        _notify('E-book berhasil ditambahkan.');
+        await _refreshLibrary();
+      } on Exception catch (error) { _notify(error.toString().replaceFirst('Exception: ', '')); }
+    }
+    title.dispose(); author.dispose(); url.dispose(); description.dispose();
   }
 
   Future<void> _returnLoan(int loanId) async {
@@ -406,6 +502,9 @@ class _LoginPageState extends State<LoginPage> {
       _books = [];
       _loans = [];
       _leadershipStats = <String, dynamic>{};
+      _reservations = [];
+      _ebooks = [];
+      _fines = <String, dynamic>{};
       _libraryError = null;
       _errorMessage = null;
       _successMessage = null;
@@ -663,12 +762,10 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: const Text('E-Library'),
         actions: [
-          if (isLibrarian)
-            IconButton(
-              tooltip: 'Tambah buku',
-              onPressed: _showAddBookDialog,
-              icon: const Icon(Icons.add),
-            ),
+          if (isLibrarian) ...[
+            IconButton(tooltip: 'Tambah buku', onPressed: _showAddBookDialog, icon: const Icon(Icons.add)),
+            IconButton(tooltip: 'Tambah e-book', onPressed: _showAddEbookDialog, icon: const Icon(Icons.menu_book)),
+          ],
           IconButton(
             tooltip: 'Keluar',
             onPressed: _logout,
@@ -773,8 +870,8 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton(
-                            onPressed: stock > 0 ? () => _borrowBook(id) : null,
-                            child: Text(stock > 0 ? 'Pinjam buku' : 'Stok habis'),
+                            onPressed: () => _borrowBook(id),
+                            child: Text(stock > 0 ? 'Pinjam buku' : 'Reservasi antrean'),
                           ),
                         )
                       else if (isLibrarian)
@@ -796,6 +893,29 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               );
             }),
+            const SizedBox(height: 20),
+            const Text('Koleksi e-book', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            if (_ebooks.isEmpty) const Text('Belum ada koleksi e-book.'),
+            ..._ebooks.map((ebook) => Card(child: ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: Text(ebook['title']?.toString() ?? 'E-book'),
+              subtitle: Text(ebook['author']?.toString() ?? ''),
+              trailing: IconButton(icon: const Icon(Icons.download), onPressed: () => _openEbook(ebook)),
+            ))),
+            if (isMember) ...[
+              const SizedBox(height: 20),
+              const Text('Reservasi saya', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+              Text('Estimasi total denda: Rp${(_fines['totalFine'] ?? 0)}'),
+              if (_reservations.isEmpty) const Text('Belum ada reservasi.'),
+              ..._reservations.map((reservation) => Card(child: ListTile(
+                title: Text(reservation['bookTitle']?.toString() ?? 'Buku'),
+                subtitle: Text('Status: ' + (reservation['status']?.toString() ?? '-') + (reservation['queueNumber'] == null ? '' : ' · Antrean ' + reservation['queueNumber'].toString())),
+                trailing: reservation['status'] == 'ready'
+                    ? TextButton(onPressed: () => _claimReservation((reservation['id'] as num).toInt()), child: const Text('Ambil'))
+                    : (reservation['status'] == 'waiting' ? TextButton(onPressed: () => _cancelReservation((reservation['id'] as num).toInt()), child: const Text('Batal')) : null),
+              ))),
+            ],
             if (!isLeadership) ...[
             const SizedBox(height: 16),
             Text(
@@ -834,10 +954,11 @@ class _LoginPageState extends State<LoginPage> {
                     'Jatuh tempo: ' + (loan['dueDate']?.toString() ?? '-'),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text('Status: ' + status),
-                ),
+                Padding(padding: const EdgeInsets.only(top: 4), child: Text('Status: ' + status)),
+                if (((loan['fineAmount'] as num?)?.toInt() ?? 0) > 0)
+                  Padding(padding: const EdgeInsets.only(top: 4), child: Text('Estimasi denda: Rp' + loan['fineAmount'].toString())),
+                if (isMember && status == 'borrowed' && ((loan['renewalCount'] as num?)?.toInt() ?? 0) < 1)
+                  Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => _renewLoan(id), child: const Text('Perpanjang'))),
                 if (status == 'borrowed')
                   Align(
                     alignment: Alignment.centerRight,
