@@ -264,3 +264,18 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Focused authentication card */
+.form-wrap:has(#login-form:not([hidden])) {
+  padding: clamp(28px, 4vw, 44px);
+  border: 1px solid rgba(222, 233, 235, .95);
+  border-radius: 25px;
+  background: rgba(255,255,255,.94);
+  box-shadow: var(--shadow-lg);
+}
+.form-wrap:has(#login-form:not([hidden])) .intro { margin-bottom: 28px; }
+.form-wrap:has(#login-form:not([hidden])) .support-note { padding-top: 14px; border-top: 1px solid #edf1f2; }
+@media (max-width: 680px) {
+  .form-wrap:has(#login-form:not([hidden])) { padding: 26px 22px; border-radius: 21px; }
+}
