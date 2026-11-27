@@ -158,19 +158,23 @@
       (book.categoryName || "Tanpa kategori") + " · Stok tersedia: " + book.stock));
     const actions = makeText("div", "book-actions", "");
     if (currentUser.role === "member") {
-      const borrow = makeText("button", "", book.stock > 0 ? "Pinjam buku" : "Stok habis");
+      const borrow = makeText("button", "", book.stock > 0 ? "Pinjam buku" : "Reservasi antrean");
       borrow.type = "button";
-      borrow.disabled = book.stock < 1;
       borrow.addEventListener("click", async () => {
         borrow.disabled = true;
         try {
-          await api("/loans", { method: "POST", body: { bookId: book.id } });
-          showCatalogMessage("Buku berhasil dipinjam.", true);
+          if (book.stock > 0) {
+            await api("/loans", { method: "POST", body: { bookId: book.id } });
+            showCatalogMessage("Buku berhasil dipinjam.", true);
+          } else {
+            await api("/reservations", { method: "POST", body: { bookId: book.id } });
+            showCatalogMessage("Reservasi berhasil masuk antrean.", true);
+          }
           await loadBooks();
           await loadLoans();
         } catch (error) {
           showCatalogMessage(error.message);
-          borrow.disabled = book.stock < 1;
+          borrow.disabled = false;
         }
       });
       actions.appendChild(borrow);
@@ -229,8 +233,18 @@
       ? (loan.userName || loan.userEmail || "Pengguna") + " · " + (loan.userEmail || "")
       : "Status: " + loan.status));
     body.appendChild(makeText("p", "", "Jatuh tempo: " + loan.dueDate));
+    if (typeof loan.fineAmount === "number" && loan.fineAmount > 0) body.appendChild(makeText("p", "role-line", "Estimasi denda: Rp" + loan.fineAmount.toLocaleString("id-ID") + " (" + loan.overdueDays + " hari)"));
     item.appendChild(body);
     if (loan.status === "borrowed") {
+      if (!adminMode && (loan.renewalCount || 0) < 1) {
+        const renew = makeText("button", "secondary", "Perpanjang 1 kali");
+        renew.type = "button";
+        renew.addEventListener("click", async () => {
+          try { await api("/loans/" + loan.id + "/renew", { method: "POST" }); showCatalogMessage("Masa pinjam berhasil diperpanjang.", true); await loadLoans(); }
+          catch (error) { showCatalogMessage(error.message); }
+        });
+        item.appendChild(renew);
+      }
       const button = makeText("button", "", "Tandai dikembalikan");
       button.type = "button";
       button.addEventListener("click", async () => {
@@ -309,6 +323,61 @@
     leadershipPanel.hidden = false;
   }
 
+  async function loadEbooks() {
+    const result = await api("/ebooks");
+    const list = document.getElementById("ebook-list");
+    list.replaceChildren();
+    for (const ebook of result.data || []) {
+      const card = makeText("article", "book-card", "");
+      card.appendChild(makeText("h4", "", ebook.title));
+      card.appendChild(makeText("p", "book-author", "Penulis: " + ebook.author));
+      card.appendChild(makeText("p", "book-description", ebook.description || "Koleksi digital."));
+      const download = makeText("button", "secondary-button", "Buka / unduh");
+      download.type = "button";
+      download.addEventListener("click", async () => {
+        try {
+          const access = await api("/ebooks/" + ebook.id + "/download");
+          window.open(access.data.downloadUrl, "_blank", "noopener");
+        } catch (error) { showCatalogMessage(error.message); }
+      });
+      card.appendChild(download);
+      list.appendChild(card);
+    }
+    if (!result.data || result.data.length === 0) list.appendChild(emptyState("Belum ada koleksi e-book."));
+  }
+
+  async function loadMemberTools() {
+    const panel = document.getElementById("member-tools");
+    if (currentUser.role !== "member") { panel.hidden = true; return; }
+    panel.hidden = false;
+    const [reservations, fines] = await Promise.all([api("/reservations/my"), api("/fines/my")]);
+    const list = document.getElementById("reservation-list");
+    list.replaceChildren();
+    for (const reservation of reservations.data || []) {
+      const item = makeText("article", "loan-item", "");
+      item.appendChild(makeText("strong", "", reservation.bookTitle));
+      item.appendChild(makeText("p", "", "Status: " + reservation.status + (reservation.queueNumber ? " · Antrean ke-" + reservation.queueNumber : "")));
+      if (reservation.expiresAt) item.appendChild(makeText("p", "", "Batas pengambilan: " + new Date(reservation.expiresAt).toLocaleString("id-ID")));
+      if (reservation.status === "ready") {
+        const claim = makeText("button", "", "Ambil buku");
+        claim.type = "button";
+        claim.addEventListener("click", async () => { try { await api("/reservations/" + reservation.id + "/claim", { method: "POST" }); showCatalogMessage("Reservasi berhasil menjadi peminjaman.", true); await loadBooks(); await loadLoans(); } catch (error) { showCatalogMessage(error.message); } });
+        item.appendChild(claim);
+      }
+      if (["waiting", "ready"].includes(reservation.status)) {
+        const cancel = makeText("button", "secondary-button", "Batalkan");
+        cancel.type = "button";
+        cancel.addEventListener("click", async () => { try { await api("/reservations/" + reservation.id, { method: "DELETE" }); await loadMemberTools(); } catch (error) { showCatalogMessage(error.message); } });
+        item.appendChild(cancel);
+      }
+      list.appendChild(item);
+    }
+    if (!reservations.data || reservations.data.length === 0) list.appendChild(emptyState("Belum ada reservasi."));
+    const total = Number(fines.totalFine || 0);
+    const fineSummary = document.getElementById("fine-summary");
+    fineSummary.textContent = "Total estimasi denda: Rp" + total.toLocaleString("id-ID") + " · Tarif Rp" + Number(fines.finePerDay || 0).toLocaleString("id-ID") + " per hari keterlambatan.";
+  }
+
   async function loadLoans() {
     const librarianMode = currentUser.role === "librarian";
     const leadershipMode = currentUser.role === "leadership";
@@ -320,6 +389,7 @@
       await loadLeadershipDashboard();
       return;
     }
+    if (!librarianMode) await loadMemberTools();
 
     loanHeading.textContent = librarianMode ? "Semua peminjaman" : "Peminjaman saya";
     loanSubtitle.textContent = librarianMode ? "Kelola status pinjaman anggota" : "Riwayat dan status peminjaman";
@@ -350,6 +420,7 @@
     await loadCategories();
     await loadBooks();
     await loadLoans();
+    await loadEbooks();
   }
   function logout() {
     accessTokenInMemory = null;
@@ -363,6 +434,7 @@
     libraryPanel.hidden = true;
     adminPanel.hidden = true;
     leadershipPanel.hidden = true;
+    document.getElementById("member-tools").hidden = true;
     pageTitle.textContent = "Selamat datang kembali";
     pageIntro.textContent = "Masuk untuk melanjutkan aktivitas perpustakaan digitalmu.";
     showCatalogMessage("");
@@ -446,6 +518,20 @@
     await loadBooks();
   });
   categoryFilter.addEventListener("change", loadBooks);
+  document.getElementById("admin-ebook-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await api("/admin/ebooks", { method: "POST", body: {
+        title: document.getElementById("ebook-title").value.trim(),
+        author: document.getElementById("ebook-author").value.trim(),
+        fileUrl: document.getElementById("ebook-url").value.trim(),
+        description: document.getElementById("ebook-description").value.trim()
+      }});
+      event.target.reset();
+      showCatalogMessage("E-book berhasil ditambahkan.", true);
+      await loadEbooks();
+    } catch (error) { showCatalogMessage(error.message); }
+  });
   adminBookForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const title = document.getElementById("new-title").value.trim();
