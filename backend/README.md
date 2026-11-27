@@ -82,3 +82,15 @@ Test memakai database SQLite sementara di memori. Setelah perubahan role, jalank
 ## Batasan yang masih direncanakan
 
 Perpanjangan masa pinjam, antrean reservasi, perhitungan denda otomatis, penyimpanan/unduhan e-book, rate limiting percobaan login, refresh/revocation token, monitoring, backup, dan deployment HTTPS masih perlu pekerjaan lanjutan.
+
+
+## Fitur lanjutan
+
+Fitur tambahan tersedia melalui modul `src/advanced.js`:
+
+- `POST /api/loans/:id/renew` — Anggota memperpanjang pinjaman aktif. Default maksimal 1 kali, tambahan 14 hari.
+- `POST /api/reservations`, `GET /api/reservations/my`, `POST /api/reservations/:id/claim`, `DELETE /api/reservations/:id` — antrean reservasi buku yang stoknya habis. Saat buku dikembalikan, reservasi terlama otomatis mendapat status siap diambil selama 3 hari.
+- `GET /api/fines/my` — estimasi denda Anggota; `GET /api/admin/fines` — ringkasan denda untuk Pustakawan. Denda dihitung otomatis berdasarkan hari keterlambatan.
+- `GET /api/ebooks` — katalog e-book; `GET /api/ebooks/:id/download` — URL unduhan setelah autentikasi; `POST/PATCH/DELETE /api/admin/ebooks` — pengelolaan oleh Pustakawan.
+
+Kebijakan default dapat diubah melalui environment: `LOAN_PERIOD_DAYS=14`, `LOAN_RENEWAL_DAYS=14`, `MAX_LOAN_RENEWALS=1`, `FINE_PER_DAY=1000` (Rupiah), dan `RESERVATION_HOLD_DAYS=3`. E-book saat ini memakai URL file HTTPS yang dikelola di luar aplikasi; backend menyimpan metadata dan memberikan URL setelah pemeriksaan role. Upload/hosting file internal belum disediakan.
