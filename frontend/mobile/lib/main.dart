@@ -705,23 +705,38 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildStatCard(String label, dynamic value) {
+    final icon = label.toLowerCase().contains('judul')
+        ? Icons.menu_book_rounded
+        : label.toLowerCase().contains('stok')
+            ? Icons.inventory_2_outlined
+            : label.toLowerCase().contains('aktif')
+                ? Icons.autorenew_rounded
+                : label.toLowerCase().contains('transaksi')
+                    ? Icons.swap_horiz_rounded
+                    : Icons.people_alt_outlined;
     return SizedBox(
-      width: 150,
+      width: 158,
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: Color(0xFF64748B))),
-              const SizedBox(height: 8),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE9F7F3),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, color: const Color(0xFF0E8C80), size: 19),
+              ),
+              const SizedBox(height: 14),
+              Text(label, style: const TextStyle(color: Color(0xFF718394), fontSize: 11, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 5),
               Text(
                 (value ?? 0).toString(),
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E3A5F),
-                ),
+                style: const TextStyle(fontSize: 27, height: 1, fontWeight: FontWeight.w900, color: Color(0xFF14283D), letterSpacing: -0.8),
               ),
             ],
           ),
@@ -740,16 +755,29 @@ class _LoginPageState extends State<LoginPage> {
         : <Map<String, dynamic>>[];
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            if (rows.isEmpty) const Text('Belum ada data.'),
-            ...rows.map((row) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text('• ' + labelBuilder(row)),
+            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF14283D))),
+            const SizedBox(height: 12),
+            if (rows.isEmpty)
+              const Text('Belum ada data.', style: TextStyle(color: Color(0xFF718394), fontSize: 13)),
+            ...rows.asMap().entries.map((entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 27,
+                    height: 27,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: const Color(0xFFEAF7F3), borderRadius: BorderRadius.circular(9)),
+                    child: Text((entry.key + 1).toString(), style: const TextStyle(color: Color(0xFF087F75), fontSize: 11, fontWeight: FontWeight.w900)),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(child: Text(labelBuilder(entry.value), style: const TextStyle(color: Color(0xFF526879), fontSize: 13, height: 1.4))),
+                ],
+              ),
             )),
           ],
         ),
@@ -1096,23 +1124,40 @@ class _LoginPageState extends State<LoginPage> {
     const accent = Color(0xFF14B8A6);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF3F7F8),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: const Color(0xFFE2EAED)),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x12142D40), blurRadius: 36, offset: Offset(0, 16)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   Container(
-                    width: 58,
-                    height: 58,
+                    width: 62,
+                    height: 62,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: primary,
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF173D59), Color(0xFF0E9F91)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x26173D59), blurRadius: 20, offset: Offset(0, 9)),
+                      ],
                     ),
                     child: const Text(
                       'E',
@@ -1138,9 +1183,10 @@ class _LoginPageState extends State<LoginPage> {
                     _isRegistering ? 'Buat akun E-Library' : 'Selamat datang kembali',
                     style: const TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
+                      fontSize: 29,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.8,
+                      height: 1.12,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1242,8 +1288,10 @@ class _LoginPageState extends State<LoginPage> {
                             style: FilledButton.styleFrom(
                               backgroundColor: primary,
                               foregroundColor: Colors.white,
+                              elevation: 0,
+                              minimumSize: const Size(0, 52),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(13),
                               ),
                             ),
                             child: _loading
@@ -1295,7 +1343,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
