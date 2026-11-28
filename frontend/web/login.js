@@ -149,8 +149,41 @@
     }
     categoryFilter.value = selected;
   }
+  function getBookCover(book) {
+    const title = String(book.title || "").toLowerCase();
+    if (title === "bumi" && String(book.author || "").toLowerCase().includes("tere liye")) {
+      return "https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg";
+    }
+    const supplied = book.coverUrl || book.imageUrl || book.thumbnail;
+    if (typeof supplied === "string" && /^https?:\\/\\//i.test(supplied)) return supplied;
+    const isbn = String(book.isbn || "").replace(/[^0-9Xx]/g, "");
+    return isbn ? "https://covers.openlibrary.org/b/isbn/" + encodeURIComponent(isbn) + "-L.jpg" : "";
+  }
   function makeBookCard(book) {
     const card = makeText("article", "book-card", "");
+    const cover = makeText("div", "book-cover-wrap", "");
+    const coverUrl = getBookCover(book);
+    if (coverUrl) {
+      const image = document.createElement("img");
+      image.src = coverUrl;
+      image.alt = "Sampul buku " + book.title;
+      image.loading = "lazy";
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => {
+        cover.replaceChildren();
+        const fallback = makeText("div", "book-cover-fallback", "");
+        fallback.appendChild(makeText("strong", "", book.title || "Koleksi buku"));
+        fallback.appendChild(makeText("span", "", book.author || "E-Library"));
+        cover.appendChild(fallback);
+      }, { once: true });
+      cover.appendChild(image);
+    } else {
+      const fallback = makeText("div", "book-cover-fallback", "");
+      fallback.appendChild(makeText("strong", "", book.title || "Koleksi buku"));
+      fallback.appendChild(makeText("span", "", book.author || "E-Library"));
+      cover.appendChild(fallback);
+    }
+    card.appendChild(cover);
     card.appendChild(makeText("h4", "", book.title));
     card.appendChild(makeText("p", "book-author", "Penulis: " + book.author));
     card.appendChild(makeText("p", "book-description", book.description || "Belum ada deskripsi buku."));
