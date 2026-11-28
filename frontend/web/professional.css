@@ -533,3 +533,58 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 @media (prefers-reduced-motion: no-preference) {
   .book-card, .primary-button, .secondary-button { transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
 }
+
+
+/* MAJOR WORKSPACE REDESIGN — editorial sidebar layout */
+@media (min-width: 901px) {
+  .page-shell:has(#library-panel:not([hidden])) .form-panel { padding: 0; }
+  .page-shell:has(#library-panel:not([hidden])) .form-wrap { width:100%; max-width:none; margin:0; padding:0; }
+  .page-shell:has(#library-panel:not([hidden])) .form-wrap > h2,
+  .page-shell:has(#library-panel:not([hidden])) .form-wrap > .intro,
+  .page-shell:has(#library-panel:not([hidden])) .form-wrap > .mobile-eyebrow { display:none; }
+  .page-shell:has(#library-panel:not([hidden])) .library-panel {
+    display:grid; grid-template-columns:248px minmax(0,1fr); align-items:start;
+    gap:0; min-height:calc(100vh - 72px); margin:0; background:#f3f6f7;
+  }
+  .workspace-sidebar {
+    position:sticky; top:0; display:flex; flex-direction:column; min-height:calc(100vh - 72px);
+    padding:30px 19px 22px; color:#eaf5f5;
+    background:linear-gradient(180deg,#0b2238 0%,#102f46 62%,#0b4c50 140%);
+  }
+  .sidebar-brand { display:flex; align-items:center; gap:12px; padding:0 8px 34px; }
+  .sidebar-mark { display:grid; place-items:center; width:42px; height:42px; border-radius:13px; color:#0c3446; background:linear-gradient(145deg,#fff,#a8eadb); font-size:1.25rem; font-weight:900; }
+  .sidebar-brand strong { display:block; color:#fff; font-size:1.02rem; letter-spacing:-.03em; }
+  .sidebar-brand small { display:block; margin-top:4px; color:#83b8b8; font-size:.55rem; letter-spacing:.14em; }
+  .sidebar-caption { margin:0 10px 12px; color:#77a6aa; font-size:.64rem; font-weight:800; letter-spacing:.16em; }
+  .sidebar-link { display:flex; align-items:center; gap:13px; margin:3px 0; padding:13px; border:1px solid transparent; border-radius:11px; color:#c0d3d8; text-decoration:none; font-size:.86rem; font-weight:650; transition:background .18s,color .18s; }
+  .sidebar-link span { display:grid; place-items:center; width:22px; color:#75cfc1; font-size:1.1rem; }
+  .sidebar-link:hover,.sidebar-link.active { color:#fff; background:rgba(130,224,207,.13); border-color:rgba(130,224,207,.12); }
+  .sidebar-bottom { display:flex; align-items:flex-start; gap:10px; margin-top:auto; padding:16px 10px 4px; border-top:1px solid rgba(255,255,255,.12); }
+  .sidebar-dot { width:8px; height:8px; margin-top:5px; border-radius:50%; background:#55d6b6; box-shadow:0 0 0 5px rgba(85,214,182,.12); }
+  .sidebar-bottom strong { display:block; color:#e8f4f3; font-size:.75rem; }
+  .sidebar-bottom small { display:block; margin-top:5px; color:#8eafb4; font-size:.68rem; }
+  .workspace-content { min-width:0; max-width:1500px; width:100%; margin:0 auto; padding:36px clamp(24px,3vw,54px) 70px; }
+  .workspace-content .library-topbar { margin-bottom:24px; }
+  .workspace-content .search-form { margin-bottom:32px; }
+  .workspace-content .section-heading { margin-top:30px; }
+  .workspace-content #book-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width:1400px) {
+  .page-shell:has(#library-panel:not([hidden])) .library-panel { grid-template-columns:260px minmax(0,1fr); }
+  .workspace-content { padding-inline:48px; }
+  .workspace-content #book-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:900px) {
+  .page-shell:has(#library-panel:not([hidden])) .form-panel { padding:20px 16px 40px; }
+  .page-shell:has(#library-panel:not([hidden])) .library-panel { display:flex; flex-direction:column; }
+  .workspace-sidebar { display:flex; align-items:center; gap:7px; width:100%; padding:10px; overflow-x:auto; border-radius:14px; color:#fff; background:#0d2c43; }
+  .sidebar-brand,.sidebar-caption,.sidebar-bottom { display:none; }
+  .sidebar-link { flex:0 0 auto; margin:0; padding:10px 12px; font-size:.78rem; white-space:nowrap; }
+  .sidebar-link span { display:none; }
+  .workspace-content { width:100%; min-width:0; padding:0; }
+}
+@media (max-width:680px) {
+  .workspace-sidebar { position:sticky; z-index:5; top:0; border-radius:12px; }
+  .sidebar-link { padding:9px 11px; font-size:.73rem; }
+  .workspace-content .library-topbar { margin-top:14px; }
+}
