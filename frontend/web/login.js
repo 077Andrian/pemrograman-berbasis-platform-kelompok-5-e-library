@@ -155,33 +155,59 @@
       return "https://books.google.com/books/content?id=Yko6zwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api";
     }
     const supplied = book.coverUrl || book.imageUrl || book.thumbnail;
-    if (typeof supplied === "string" && (supplied.startsWith("https://") || supplied.startsWith("http://"))) return supplied;
+    if (typeof supplied === "string" && /^https?:\/\//i.test(supplied)) return supplied;
     const isbn = String(book.isbn || "").replace(/[^0-9Xx]/g, "");
     return isbn ? "https://covers.openlibrary.org/b/isbn/" + encodeURIComponent(isbn) + "-L.jpg" : "";
+  }
+
+  const coverLookupCache = new Map();
+  async function findOnlineCover(book) {
+    const key = String(book.title || "") + "|" + String(book.author || "");
+    if (coverLookupCache.has(key)) return coverLookupCache.get(key);
+    const lookup = (async () => {
+      try {
+        const query = "intitle:" + String(book.title || "").trim() +
+          (book.author ? "+inauthor:" + String(book.author).trim() : "");
+        const response = await fetch("https://www.googleapis.com/books/v1/volumes?q=" +
+          encodeURIComponent(query) + "&maxResults=1&printType=books");
+        if (!response.ok) return "";
+        const data = await response.json();
+        const image = data.items?.[0]?.volumeInfo?.imageLinks?.thumbnail ||
+          data.items?.[0]?.volumeInfo?.imageLinks?.smallThumbnail || "";
+        return typeof image === "string" ? image.replace(/^http:/, "https:") : "";
+      } catch (_) { return ""; }
+    })();
+    coverLookupCache.set(key, lookup);
+    return lookup;
+  }
+  function applyCoverFallback(cover, book) {
+    cover.replaceChildren();
+    const fallback = makeText("div", "book-cover-fallback", "");
+    fallback.appendChild(makeText("span", "cover-edition", "E-LIBRARY · COLLECTION"));
+    fallback.appendChild(makeText("strong", "", book.title || "Koleksi buku"));
+    fallback.appendChild(makeText("span", "cover-author", book.author || "Digital library"));
+    cover.appendChild(fallback);
+  }
+  function mountCoverImage(cover, book, url) {
+    if (!url) { applyCoverFallback(cover, book); return; }
+    const image = document.createElement("img");
+    image.src = url;
+    image.alt = "Sampul buku " + book.title;
+    image.loading = "lazy";
+    image.referrerPolicy = "no-referrer";
+    image.addEventListener("error", () => applyCoverFallback(cover, book), { once: true });
+    cover.replaceChildren(image);
   }
   function makeBookCard(book) {
     const card = makeText("article", "book-card", "");
     const cover = makeText("div", "book-cover-wrap", "");
     const coverUrl = getBookCover(book);
-    if (coverUrl) {
-      const image = document.createElement("img");
-      image.src = coverUrl;
-      image.alt = "Sampul buku " + book.title;
-      image.loading = "lazy";
-      image.referrerPolicy = "no-referrer";
-      image.addEventListener("error", () => {
-        cover.replaceChildren();
-        const fallback = makeText("div", "book-cover-fallback", "");
-        fallback.appendChild(makeText("strong", "", book.title || "Koleksi buku"));
-        fallback.appendChild(makeText("span", "", book.author || "E-Library"));
-        cover.appendChild(fallback);
-      }, { once: true });
-      cover.appendChild(image);
-    } else {
-      const fallback = makeText("div", "book-cover-fallback", "");
-      fallback.appendChild(makeText("strong", "", book.title || "Koleksi buku"));
-      fallback.appendChild(makeText("span", "", book.author || "E-Library"));
-      cover.appendChild(fallback);
+    if (coverUrl) mountCoverImage(cover, book, coverUrl);
+    else {
+      applyCoverFallback(cover, book);
+      findOnlineCover(book).then((url) => {
+        if (url && cover.isConnected && !cover.querySelector("img")) mountCoverImage(cover, book, url);
+      });
     }
     card.appendChild(cover);
     card.appendChild(makeText("h4", "", book.title));
