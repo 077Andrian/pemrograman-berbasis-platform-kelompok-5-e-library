@@ -152,7 +152,7 @@
   function getBookCover(book) {
     const title = String(book.title || "").toLowerCase();
     if (title === "bumi" && String(book.author || "").toLowerCase().includes("tere liye")) {
-      return "https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg";
+      return "https://books.google.com/books/content?id=Yko6zwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api";
     }
     const supplied = book.coverUrl || book.imageUrl || book.thumbnail;
     if (typeof supplied === "string" && (supplied.startsWith("https://") || supplied.startsWith("http://"))) return supplied;
