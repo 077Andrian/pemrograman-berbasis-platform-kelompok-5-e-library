@@ -28,7 +28,7 @@ export function createApp({ db, secret, origin = 'http://localhost:5173' }) {
 
   api.get('/', (req, res) => res.json({ status: true, message: 'Welcome to API v1' }));
   api.get('/health', asyncRoute(async (req, res) => {
-    await db.$queryRaw\`SELECT 1\`;
+    await db.$queryRaw`SELECT 1`;
     res.json({ status: 'ok' });
   }));
   api.post('/auth/register', asyncRoute(async (req, res) => {

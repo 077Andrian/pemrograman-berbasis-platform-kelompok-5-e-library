@@ -5,7 +5,7 @@ export const publicUser = ({ id, nim, nama, role }) => ({ id, nim, nama, role })
 
 export function requireAuth(db, secret) {
   return asyncRoute(async (req, res, next) => {
-    const match = /^Bearer (\\S+)$/.exec(req.headers.authorization || '');
+    const match = /^Bearer (\S+)$/.exec(req.headers.authorization || '');
     if (!match) throw new HttpError(401, 'Silakan login');
     let payload;
     try {
