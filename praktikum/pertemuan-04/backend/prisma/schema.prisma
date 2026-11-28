@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  nim          String    @unique @db.VarChar(20)
+  nama         String    @db.VarChar(100)
+  passwordHash String
+  role         Role      @default(MAHASISWA)
+  peserta      Peserta[]
+}
+
+enum Role {
+  ADMIN
+  MAHASISWA
+}
+
+model Jadwal {
+  id        Int       @id @default(autoincrement())
+  judul     String    @db.VarChar(120)
+  kapasitas Int
+  createdAt DateTime  @default(now())
+  peserta   Peserta[]
+}
+
+model Peserta {
+  id       Int    @id @default(autoincrement())
+  jadwalId Int
+  userId   Int
+  jadwal   Jadwal @relation(fields: [jadwalId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([jadwalId, userId])
+  @@index([userId])
+}

@@ -1,0 +1,19 @@
+{
+  "users": [
+    {"nim":"2026001","nama":"Admin Praktikum","password":"admin123","role":"ADMIN"},
+    {"nim":"2026002","nama":"Citra Contoh","password":"mhs123","role":"MAHASISWA"},
+    {"nim":"2026003","nama":"Damar Contoh","password":"mhs123","role":"MAHASISWA"}
+  ],
+  "jadwal": [
+    {"id":1001,"judul":"Dasar HTTP dan Routing","kapasitas":20},
+    {"id":1002,"judul":"Kelas Contoh Penuh","kapasitas":1},
+    {"id":1003,"judul":"Validasi dan CRUD","kapasitas":15},
+    {"id":1004,"judul":"Relasi dan Transaksi","kapasitas":15},
+    {"id":1005,"judul":"Integrasi Web Svelte","kapasitas":20},
+    {"id":1006,"judul":"Integrasi Mobile Flutter","kapasitas":20}
+  ],
+  "peserta": [
+    {"jadwalId":1001,"nim":"2026002"},
+    {"jadwalId":1002,"nim":"2026001"}
+  ]
+}
