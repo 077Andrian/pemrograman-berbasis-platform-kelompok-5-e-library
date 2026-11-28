@@ -279,3 +279,108 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 680px) {
   .form-wrap:has(#login-form:not([hidden])) { padding: 26px 22px; border-radius: 21px; }
 }
+
+
+/* Editorial book imagery and richer catalogue presentation */
+.page-shell:not(:has(#library-panel:not([hidden]))) .brand-panel {
+  background:
+    linear-gradient(115deg, rgba(8, 29, 47, .96) 0%, rgba(13, 54, 72, .88) 54%, rgba(8, 103, 96, .76) 100%),
+    url("https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg") right 12% center / auto 76% no-repeat,
+    linear-gradient(145deg, #0d263c, #126d69);
+}
+.page-shell:not(:has(#library-panel:not([hidden]))) .brand-panel::after {
+  width: 390px;
+  height: 520px;
+  left: auto;
+  right: 5%;
+  bottom: -105px;
+  border-radius: 22px;
+  background:
+    linear-gradient(90deg, rgba(10,34,51,.25), rgba(10,34,51,.02)),
+    url("https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg") center / cover no-repeat;
+  opacity: .23;
+  filter: blur(1px);
+  transform: rotate(9deg);
+  box-shadow: 22px 24px 65px rgba(0,0,0,.28);
+}
+.page-shell:has(#library-panel:not([hidden])) .form-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 92% 8%, rgba(14,159,145,.12), transparent 26rem),
+    radial-gradient(ellipse at 4% 56%, rgba(23,61,89,.07), transparent 28rem),
+    var(--canvas);
+}
+.page-shell:has(#library-panel:not([hidden])) .form-panel::before {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  top: 105px;
+  right: -42px;
+  width: 235px;
+  height: 330px;
+  border-radius: 13px;
+  opacity: .075;
+  filter: grayscale(.15);
+  transform: rotate(10deg);
+  background: url("https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg") center / cover no-repeat;
+  box-shadow: 0 18px 48px rgba(16,43,67,.18);
+}
+.book-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: 17px;
+  padding: 17px;
+  min-height: 232px;
+}
+.book-card::before { grid-column: 1 / -1; margin: -17px -17px 16px; }
+.book-cover-wrap {
+  grid-column: 1;
+  grid-row: 2 / 6;
+  align-self: start;
+  position: relative;
+  width: 112px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 8px 11px 11px 8px;
+  background: linear-gradient(145deg, #153b55, #0e9f91 68%, #b7e9dc);
+  box-shadow: 5px 9px 18px rgba(14,39,57,.2), inset 4px 0 5px rgba(0,0,0,.13);
+}
+.book-cover-wrap::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  border-left: 3px solid rgba(255,255,255,.18);
+  background: linear-gradient(90deg, rgba(0,0,0,.16), transparent 16%, transparent 88%, rgba(0,0,0,.08));
+}
+.book-cover-wrap img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.book-cover-fallback {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 12px 9px;
+  color: white;
+  background:
+    radial-gradient(circle at 75% 25%, rgba(255,255,255,.3), transparent 32%),
+    linear-gradient(145deg, #102b43, #087f75);
+}
+.book-cover-fallback strong { font-size: .92rem; line-height: 1.12; overflow-wrap: anywhere; }
+.book-cover-fallback span { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.book-card h4, .book-card .book-author, .book-card .book-description,
+.book-card .book-meta, .book-card .book-actions { grid-column: 2; }
+.book-card h4 { grid-row: 2; }
+.book-card .book-author { grid-row: 3; }
+.book-card .book-description { grid-row: 4; }
+.book-card .book-meta { grid-row: 5; }
+.book-card .book-actions { grid-row: 6; }
+@media (max-width: 680px) {
+  .book-card { grid-template-columns: 92px minmax(0,1fr); column-gap: 13px; min-height: 210px; padding: 15px; }
+  .book-card::before { margin: -15px -15px 14px; }
+  .book-cover-wrap { width: 92px; }
+  .page-shell:not(:has(#library-panel:not([hidden]))) .brand-panel::after { right: -75px; opacity: .16; }
+}
