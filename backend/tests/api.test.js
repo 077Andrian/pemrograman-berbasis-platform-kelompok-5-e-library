@@ -233,3 +233,68 @@ test('validation errors use the shared response envelope', async () => {
   assert.equal(response.status, 422);
   assert.equal(response.body.error.code, 'VALIDATION_ERROR');
 });
+
+test('renewal, fines, reservation queue and ebook access work with role checks', async () => {
+  const categories = await request(app).get('/api/categories');
+  const createdBook = await request(app).post('/api/admin/books')
+    .set('Authorization', 'Bearer ' + adminToken)
+    .send({ title: 'Buku Fitur Lanjutan', author: 'Tim E-Library', stock: 1, categoryId: categories.body.data[0].id });
+  assert.equal(createdBook.status, 201);
+  const advancedBookId = createdBook.body.data.id;
+
+  const borrowed = await request(app).post('/api/loans')
+    .set('Authorization', 'Bearer ' + memberToken)
+    .send({ bookId: advancedBookId });
+  assert.equal(borrowed.status, 201);
+  const advancedLoanId = borrowed.body.data.id;
+
+  const renewed = await request(app).post('/api/loans/' + advancedLoanId + '/renew')
+    .set('Authorization', 'Bearer ' + memberToken);
+  assert.equal(renewed.status, 200);
+  assert.equal(renewed.body.data.renewalCount, 1);
+  const secondRenewal = await request(app).post('/api/loans/' + advancedLoanId + '/renew')
+    .set('Authorization', 'Bearer ' + memberToken);
+  assert.equal(secondRenewal.status, 409);
+
+  const reservation = await request(app).post('/api/reservations')
+    .set('Authorization', 'Bearer ' + secondMemberToken)
+    .send({ bookId: advancedBookId });
+  assert.equal(reservation.status, 201);
+  assert.equal(reservation.body.data.status, 'waiting');
+
+  db.prepare('UPDATE loans SET due_date = ? WHERE id = ?')
+    .run(new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), advancedLoanId);
+  const fines = await request(app).get('/api/fines/my')
+    .set('Authorization', 'Bearer ' + memberToken);
+  assert.equal(fines.status, 200);
+  assert.ok(fines.body.data.some((fine) => fine.loanId === advancedLoanId && fine.fineAmount >= 2000));
+
+  const returned = await request(app).post('/api/loans/' + advancedLoanId + '/return')
+    .set('Authorization', 'Bearer ' + memberToken);
+  assert.equal(returned.status, 200);
+  const memberReservations = await request(app).get('/api/reservations/my')
+    .set('Authorization', 'Bearer ' + secondMemberToken);
+  assert.equal(memberReservations.status, 200);
+  assert.equal(memberReservations.body.data[0].status, 'ready');
+
+  const claimed = await request(app).post('/api/reservations/' + reservation.body.data.id + '/claim')
+    .set('Authorization', 'Bearer ' + secondMemberToken);
+  assert.equal(claimed.status, 201);
+  assert.equal(claimed.body.data.status, 'borrowed');
+
+  const ebook = await request(app).post('/api/admin/ebooks')
+    .set('Authorization', 'Bearer ' + adminToken)
+    .send({ title: 'Panduan API', author: 'Tim', description: 'Materi digital', fileUrl: 'https://example.com/panduan-api.pdf' });
+  assert.equal(ebook.status, 201);
+  const ebookCatalog = await request(app).get('/api/ebooks');
+  assert.ok(ebookCatalog.body.data.some((item) => item.id === ebook.body.data.id));
+  const download = await request(app).get('/api/ebooks/' + ebook.body.data.id + '/download')
+    .set('Authorization', 'Bearer ' + secondMemberToken);
+  assert.equal(download.status, 200);
+  assert.equal(download.body.data.downloadUrl, 'https://example.com/panduan-api.pdf');
+
+  const forbiddenEbookCreate = await request(app).post('/api/admin/ebooks')
+    .set('Authorization', 'Bearer ' + memberToken)
+    .send({ title: 'Nope', author: 'Member', fileUrl: 'https://example.com/nope.pdf' });
+  assert.equal(forbiddenEbookCreate.status, 403);
+});

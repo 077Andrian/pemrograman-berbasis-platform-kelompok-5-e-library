@@ -2,7 +2,7 @@ name: E-Library CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feat/complete-core-features"]
     paths:
       - "backend/**"
       - "frontend/mobile/**"

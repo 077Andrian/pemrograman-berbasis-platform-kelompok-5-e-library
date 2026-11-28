@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="light">
   <title>Masuk — E-Library</title>
   <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="professional.css">
   <script src="config.js" defer></script>
   <script src="login.js" defer></script>
 </head>
@@ -63,6 +64,16 @@
         <p class="support-note" id="support-note">Prototipe login · membutuhkan backend API yang aktif.</p>
 
         <section class="library-panel" id="library-panel" aria-label="Area perpustakaan terlindungi" hidden>
+          <aside class="workspace-sidebar" aria-label="Navigasi perpustakaan">
+            <div class="sidebar-brand"><span class="sidebar-mark">E</span><div><strong>E-Library</strong><small>DIGITAL READING SPACE</small></div></div>
+            <p class="sidebar-caption">MENU UTAMA</p>
+            <a class="sidebar-link active" href="#book-grid"><span>▦</span> Katalog buku</a>
+            <a class="sidebar-link" href="#ebook-list"><span>▤</span> Koleksi e-book</a>
+            <a class="sidebar-link" href="#loan-list"><span>↗</span> Peminjaman</a>
+            <a class="sidebar-link" href="#reservation-list"><span>◷</span> Reservasi & denda</a>
+            <div class="sidebar-bottom"><span class="sidebar-dot"></span><div><strong>Ruang baca digital</strong><small>Temukan cerita berikutnya.</small></div></div>
+          </aside>
+          <div class="workspace-content">
           <div class="library-topbar">
             <div>
               <p class="eyebrow library-eyebrow">AREA PENGGUNA</p>
@@ -72,6 +83,22 @@
             <button type="button" class="secondary-button" id="logout-button">Keluar</button>
           </div>
 
+          <section class="welcome-hero" aria-label="Selamat datang di E-Library">
+            <div class="hero-copy">
+              <span class="hero-kicker"><span class="hero-kicker-dot"></span> RUANG BACA DIGITAL</span>
+              <h2>Temukan cerita yang <em>mengubah cara pandang.</em></h2>
+              <p>Jelajahi koleksi pilihan, temukan pengetahuan baru, dan lanjutkan bacaanmu dari mana saja.</p>
+              <a class="hero-cta" href="#book-grid">Jelajahi koleksi <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="hero-book hero-book-back"></div>
+              <div class="hero-book hero-book-front"><span>THE ART OF<br>READING</span><small>E-LIBRARY COLLECTION</small></div>
+              <div class="hero-orbit"></div>
+              <div class="hero-note"><strong>Read more.</strong><span>Discover more.</span></div>
+            </div>
+            <div class="hero-bottomline"><span>CURATED KNOWLEDGE</span><span>EST. FOR EVERY CURIOUS MIND</span></div>
+          </section>
+
           <form id="search-form" class="search-form">
             <label class="sr-only" for="book-search">Cari buku</label>
             <input id="book-search" type="search" placeholder="Cari judul, penulis, atau ISBN">
@@ -80,15 +107,26 @@
             <button class="primary-button search-button" type="submit">Cari</button>
           </form>
 
-          <div class="section-heading">
-            <div><h3>Katalog buku</h3><p id="catalog-count">Memuat katalog...</p></div>
+          <div class="section-heading" id="catalog-section">
+            <div><span class="section-kicker">THE COLLECTION</span><h3>Katalog buku</h3><p id="catalog-count">Memuat katalog...</p></div>
           </div>
           <div id="catalog-message" class="message" role="status" aria-live="polite" hidden></div>
           <div id="book-grid" class="book-grid"></div>
 
-          <section class="loan-section">
+          <section id="member-tools" class="loan-section" hidden>
+            <div class="section-heading"><div><h3>Reservasi dan denda</h3><p>Antrean buku dan estimasi denda keterlambatan.</p></div></div>
+            <div id="reservation-list" class="loan-list"></div>
+            <div id="fine-summary" class="message" role="status"></div>
+          </section>
+
+          <section class="loan-section" id="ebooks-section">
+            <div class="section-heading"><div><span class="section-kicker">DIGITAL EDITION</span><h3>Koleksi e-book</h3><p>Baca atau unduh koleksi digital.</p></div></div>
+            <div id="ebook-list" class="book-grid"></div>
+          </section>
+
+          <section class="loan-section" id="loans-section">
             <div class="section-heading">
-              <div><h3 id="loan-heading">Peminjaman saya</h3><p id="loan-subtitle">Riwayat dan status peminjaman</p></div>
+              <div><span class="section-kicker">YOUR READING ACTIVITY</span><h3 id="loan-heading">Peminjaman saya</h3><p id="loan-subtitle">Riwayat dan status peminjaman</p></div>
               <button type="button" id="refresh-button" class="secondary-button">Muat ulang</button>
             </div>
             <div id="loan-list" class="loan-list"></div>
@@ -105,6 +143,14 @@
               <button class="primary-button" type="submit">Tambah buku</button>
             </form>
             <div class="section-heading"><div><h3>Semua peminjaman</h3></div></div>
+            <form id="admin-ebook-form" class="admin-form">
+              <h4>Tambah e-book</h4>
+              <div class="field"><label for="ebook-title">Judul</label><input id="ebook-title" required maxlength="200"></div>
+              <div class="field"><label for="ebook-author">Penulis</label><input id="ebook-author" required maxlength="160"></div>
+              <div class="field"><label for="ebook-url">URL file HTTPS (PDF)</label><input id="ebook-url" type="url" placeholder="https://..." required></div>
+              <div class="field"><label for="ebook-description">Deskripsi</label><input id="ebook-description" maxlength="2000"></div>
+              <button class="primary-button" type="submit">Tambah e-book</button>
+            </form>
             <div id="admin-loan-list" class="loan-list"></div>
           </section>
 
@@ -114,6 +160,7 @@
             </div>
             <div id="leadership-stats"></div>
           </section>
+          </div>
         </section>
       </div>
     </section>

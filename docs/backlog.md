@@ -9,10 +9,10 @@ Project yang dipilih: **Project 4 — E-Library**. Status di bawah adalah status
 | F03 | Detail buku dan ketersediaan stok | Tinggi | Sudah tersedia | Detail dan stok tampil benar. |
 | F04 | Peminjaman dan tanggal jatuh tempo | Tinggi | Sudah tersedia; diuji manual | Transaksi tercatat dan due date tersedia. |
 | F05 | Pengembalian dan pembaruan stok | Tinggi | Sudah tersedia; diuji manual | Status berubah dan stok bertambah tepat satu kali. |
-| F06 | Perpanjangan masa pinjam | Menengah | Belum diimplementasikan | Endpoint/UI, validasi, tes sukses dan gagal. |
-| F07 | Antrean reservasi saat stok habis | Menengah | Belum diimplementasikan | Anggota masuk antrean dan memperoleh posisi. |
-| F08 | Denda keterlambatan otomatis | Menengah | Belum diimplementasikan | Aturan hitung disepakati dan hasil dihitung diuji. |
-| F09 | Katalog e-book dan unduhan | Menengah | Belum diimplementasikan | Data e-book dan akses file sesuai hak pengguna. |
+| F06 | Perpanjangan masa pinjam | Menengah | Implementasi API dan integrasi klien ditambahkan; perlu verifikasi | Endpoint/UI, validasi, tes sukses dan gagal. |
+| F07 | Antrean reservasi saat stok habis | Menengah | Implementasi API dan integrasi klien ditambahkan; perlu verifikasi | Anggota masuk antrean dan memperoleh posisi. |
+| F08 | Denda keterlambatan otomatis | Menengah | Perhitungan API dan tampilan ringkasan ditambahkan; perlu verifikasi | Aturan hitung disepakati dan hasil dihitung diuji. |
+| F09 | Katalog e-book dan akses unduhan URL HTTPS | Menengah | Katalog, pengelolaan metadata, dan akses URL ditambahkan; hosting file eksternal perlu disiapkan | Data e-book dan akses file sesuai hak pengguna. |
 | F10 | Pustakawan mengelola katalog/stok | Tinggi | Fitur Admin lama dialihkan; perlu verifikasi lokal | Pustakawan tambah, ubah, hapus sesuai aturan transaksi. |
 | F11 | Pustakawan mengelola sirkulasi | Tinggi | Fitur pengelolaan pinjaman tersedia; perlu verifikasi lokal | Dapat melihat pinjaman dan mencatat pengembalian. |
 | F12 | Dashboard statistik Pimpinan | Tinggi | Endpoint dan panel ditambahkan; perlu verifikasi lokal | Statistik koleksi/sirkulasi dan peringkat muncul. |
@@ -20,6 +20,10 @@ Project yang dipilih: **Project 4 — E-Library**. Status di bawah adalah status
 ## Milestone pemeriksaan Rabu, 28 Oktober 2026
 
 Target kelompok: minimal **8 dari 12 fitur (66,7%)** dapat didemonstrasikan, memiliki API yang berjalan, dan menunjukkan tiga role. Hitung fitur sebagai selesai hanya setelah ada bukti implementasi serta tes yang berhasil. Perubahan role dan dashboard perlu ditarik ke komputer lalu diuji ulang.
+
+## Catatan implementasi lanjutan
+
+Kebijakan default: masa pinjam 14 hari, perpanjangan maksimal satu kali selama 14 hari, denda Rp1.000 per hari keterlambatan, dan masa pengambilan reservasi 3 hari. Nilai dapat diubah melalui environment backend. E-book menggunakan URL HTTPS eksternal; penyimpanan dan upload file internal belum tersedia. Semua fitur baru harus lulus tes otomatis dan smoke test sebelum status dinyatakan selesai.
 
 ## Pekerjaan lintas tim
 

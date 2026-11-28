@@ -52,7 +52,7 @@ Daftar requirement lengkap terdapat di [proposal proyek](docs/proposal.md) dan s
 11. Kelola sirkulasi oleh Pustakawan.
 12. Dashboard statistik Pimpinan.
 
-Fitur 6–9 masih merupakan pekerjaan lanjutan sampai implementasi dan pengujiannya benar-benar selesai.
+Fitur perpanjangan, reservasi, perhitungan denda, dan katalog e-book sudah memiliki endpoint backend dan integrasi dasar pada web/mobile. Pengujian menyeluruh serta penyediaan file e-book HTTPS tetap perlu diverifikasi sebelum dinyatakan siap produksi.
 
 ## Teknologi dan Fitur Dasar
 
