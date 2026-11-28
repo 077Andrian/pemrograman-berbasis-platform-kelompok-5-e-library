@@ -155,7 +155,7 @@
       return "https://covers.openlibrary.org/b/isbn/9786020332956-L.jpg";
     }
     const supplied = book.coverUrl || book.imageUrl || book.thumbnail;
-    if (typeof supplied === "string" && /^https?:\\/\\//i.test(supplied)) return supplied;
+    if (typeof supplied === "string" && (supplied.startsWith("https://") || supplied.startsWith("http://"))) return supplied;
     const isbn = String(book.isbn || "").replace(/[^0-9Xx]/g, "");
     return isbn ? "https://covers.openlibrary.org/b/isbn/" + encodeURIComponent(isbn) + "-L.jpg" : "";
   }
